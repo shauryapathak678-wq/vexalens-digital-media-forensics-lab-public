@@ -1,0 +1,50 @@
+FROM python:3.9-slim AS deepsafe-source
+
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN git init /opt/DeepSafe && \
+    git -C /opt/DeepSafe remote add origin https://github.com/siddharthksah/DeepSafe.git && \
+    git -C /opt/DeepSafe fetch --depth 1 origin 2285e8aaa30b2df0508d570172643d1cae40703f && \
+    git -C /opt/DeepSafe checkout --detach FETCH_HEAD
+
+FROM python:3.9-slim
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=deepsafe-source /opt/DeepSafe/sdk/ /app/sdk/
+RUN pip install --no-cache-dir /app/sdk/
+
+RUN pip install --no-cache-dir \
+    torch==2.0.1 \
+    torchvision==0.15.2 \
+    --index-url https://download.pytorch.org/whl/cpu
+
+COPY --from=deepsafe-source /opt/DeepSafe/models/image/npr_deepfakedetection/ /app/model/
+RUN pip install --no-cache-dir -r /app/model/requirements.txt
+
+WORKDIR /app/model
+
+RUN git init npr_deepfakedetection && \
+    git -C npr_deepfakedetection remote add origin https://github.com/chuangchuangtan/NPR-DeepfakeDetection.git && \
+    git -C npr_deepfakedetection fetch --depth 1 origin 781ced3f7ca2cdc69ec9dd4ef27e8d0b3c07752a && \
+    git -C npr_deepfakedetection checkout --detach FETCH_HEAD && \
+    mkdir -p npr_deepfakedetection/weights && \
+    cp npr_deepfakedetection/model_epoch_last_3090.pth npr_deepfakedetection/weights/NPR.pth && \
+    echo "b67a91555ce786a6d0463ff0cb2b0b874d1c3f971b0e3febd2ae5618a80f7e8a  npr_deepfakedetection/weights/NPR.pth" | sha256sum -c -
+
+RUN sed -i 's/version: "1.0.0"/version: "1.1.0"/; s/PRELOAD_MODEL: "false"/PRELOAD_MODEL: "true"/; s/MODEL_TIMEOUT: "600"/MODEL_TIMEOUT: "0"/' /app/model/model.yaml
+COPY npr_detector.py /app/model/detector.py
+
+ENV MODEL_PORT=5001 \
+    USE_GPU=false \
+    PRELOAD_MODEL=true \
+    MODEL_TIMEOUT=0
+
+EXPOSE 5001
+
+CMD ["deepsafe", "serve", "--manifest", "model.yaml"]

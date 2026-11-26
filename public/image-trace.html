@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image Trace</title>
+<style>
+  .it { --bg:#0e1116; --panel:#161b22; --line:#2a313c; --text:#e6edf3; --muted:#8b97a5; --accent:#3fb6a8; --warn:#e3a008; --bad:#f0616d; --good:#4cc38a;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--text); background:var(--bg); padding:32px 16px; line-height:1.5; }
+  .it * { box-sizing:border-box; }
+  .it .wrap { max-width:980px; margin:0 auto; }
+  .it h2 { font-size:1.6rem; margin:0 0 4px; }
+  .it h3 { font-size:1.05rem; margin:0 0 12px; }
+  .it p.sub { color:var(--muted); margin:0 0 24px; }
+  .it .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px; margin-bottom:18px; }
+  .it .drop { border:2px dashed var(--line); border-radius:10px; padding:28px; text-align:center; color:var(--muted); cursor:pointer; transition:border-color .15s, background .15s; }
+  .it .drop.over, .it .drop:focus-visible { border-color:var(--accent); background:#12201f; outline:none; }
+  .it .grid { display:grid; grid-template-columns:220px 1fr; gap:20px; }
+  @media (max-width:700px){ .it .grid { grid-template-columns:1fr; } }
+  .it img.preview { width:100%; max-height:260px; object-fit:contain; background:#0a0d11; border-radius:8px; border:1px solid var(--line); }
+  .it table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  .it th, .it td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; word-break:break-all; }
+  .it th { color:var(--muted); font-weight:500; width:150px; white-space:nowrap; word-break:normal; }
+  .it .results th { width:auto; white-space:nowrap; }
+  .it code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size:.85em; }
+  .it button, .it a.btn { background:var(--accent); color:#07201d; border:0; border-radius:7px; padding:9px 14px; font-weight:600; font-size:.9rem; cursor:pointer; text-decoration:none; display:inline-block; }
+  .it button.ghost, .it a.btn.ghost { background:transparent; color:var(--text); border:1px solid var(--line); }
+  .it button:disabled { opacity:.45; cursor:not-allowed; }
+  .it button:hover:not(:disabled), .it a.btn:hover { filter:brightness(1.1); }
+  .it .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px; }
+  .it input[type=text], .it select { background:#0a0d11; color:var(--text); border:1px solid var(--line); border-radius:7px; padding:9px 11px; font-size:.9rem; flex:1; min-width:200px; }
+  .it textarea { width:100%; min-height:100px; resize:vertical; background:#0a0d11; color:var(--text); border:1px solid var(--line); border-radius:7px; padding:9px 11px; font:inherit; }
+  .it label.inline { display:inline-flex; gap:7px; align-items:center; color:var(--muted); font-size:.88rem; }
+  .it .note { font-size:.85rem; color:var(--muted); margin-top:10px; }
+  .it .warn { border-left:3px solid var(--warn); padding:8px 12px; background:#1d1a10; border-radius:4px; font-size:.88rem; margin-top:12px; }
+  .it .badge { display:inline-block; padding:2px 8px; border-radius:99px; font-size:.78rem; font-weight:600; background:#222a35; }
+  .it .badge.good { background:#12301f; color:var(--good); }
+  .it .badge.warn { background:#33270a; color:var(--warn); }
+  .it .badge.bad { background:#34161a; color:var(--bad); }
+  .it .hidden { display:none; }
+  .it .status-line { font-size:.88rem; margin-top:10px; min-height:1.3em; }
+  .it .engine-status { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .it .tabs { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+</style>
+</head>
+<body style="margin:0;background:#0e1116">
+
+<!-- ===================== IMAGE TRACE SECTION (copy from here) ===================== -->
+<section class="it" id="image-trace" aria-labelledby="it-title">
+  <div class="wrap">
+    <h2 id="it-title">Image Trace</h2>
+    <p class="sub">Find where an image appears online, and check copies against each other. Hashing and comparison run in your browser. After you confirm external-search consent, choosing an image starts the search automatically.</p>
+
+    <!-- 1. Upload -->
+    <div class="card">
+      <h3>1. Upload the evidence image</h3>
+      <div class="drop" id="it-drop" tabindex="0" role="button" aria-label="Choose or drop an image">
+        Drop an image here, or click to choose (JPG, PNG, WEBP, GIF)
+        <input type="file" id="it-file" accept="image/*" class="hidden">
+      </div>
+      <div class="status-line" id="it-status" role="status"></div>
+      <label class="note" style="display:block">
+        <input type="checkbox" id="it-consent">
+        I understand that automated search sends a resized image copy to Google Cloud Vision, Yandex Image Search, and TinEye.
+      </label>
+    </div>
+
+    <!-- 2. Analysis -->
+    <div class="card hidden" id="it-analysis">
+      <h3>2. Local analysis</h3>
+      <div class="grid">
+        <img id="it-preview" class="preview" alt="Uploaded image preview">
+        <table id="it-meta"></table>
+      </div>
+      <div class="note">Social platforms strip metadata and recompress images, so SHA-256 only matches byte-identical files. The perceptual hashes (aHash, dHash, pHash) survive resizing and recompression, which is why copies are compared with those.</div>
+    </div>
+
+    <!-- 3. Search -->
+    <div class="card hidden" id="it-search">
+      <h3>3. Search engines</h3>
+      <p class="note" style="margin-top:0">Manual route: open an engine, then upload the same file there. If the image is already at a public URL, paste it below to get direct search links.</p>
+      <div class="row">
+        <a class="btn ghost" href="https://lens.google.com/" target="_blank" rel="noopener noreferrer">Google Lens (manual)</a>
+        <a class="btn ghost" href="https://yandex.com/images/" target="_blank" rel="noopener noreferrer">Yandex Images</a>
+        <a class="btn ghost" href="https://www.bing.com/visualsearch" target="_blank" rel="noopener noreferrer">Bing Visual Search</a>
+        <a class="btn ghost" href="https://tineye.com/" target="_blank" rel="noopener noreferrer">TinEye</a>
+      </div>
+      <div class="row">
+        <input type="text" id="it-url" placeholder="Public image URL (optional), e.g. https://example.com/photo.jpg" aria-label="Public image URL">
+        <button class="ghost" id="it-urlbtn" type="button">Make search links</button>
+      </div>
+      <div class="row hidden" id="it-urllinks"></div>
+
+      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+
+      <p class="note" style="margin-top:0">Automated route: after consent, choosing an image sends only a metadata-stripped JPEG copy (maximum 1024 px on its long side) to Google Cloud Vision Web Detection, Yandex Image Search API, and TinEye when configured. Bing remains a manual option. Their retention and use policies apply; VexaLens keeps the original image only in your browser and does not save it on the server. Deep search tries crops only after a successful full-image search returns no matches and you select the deep-search button.</p>
+      <div class="row">
+        <input type="text" id="it-endpoint" value="/api/trace/stream" aria-label="Backend endpoint">
+        <input type="text" id="it-case" placeholder="Case ID (optional)" aria-label="Case ID" style="max-width:200px">
+        <button id="it-run" type="button" disabled>Search again</button>
+      </div>
+      <div class="status-line" id="it-runstatus" role="status"></div>
+      <div class="engine-status" id="it-engine-status" aria-live="polite"></div>
+      <div class="row">
+        <button class="ghost hidden" id="it-deep-search" type="button">Deep search (try crops)</button>
+        <button class="ghost hidden" id="it-retry" type="button">Retry search</button>
+      </div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+      <h3>Scan investigator-supplied public links</h3>
+      <p class="note" style="margin-top:0">Only scan public URLs you are authorized to review. This scan does not use logins, browser cookies, or CAPTCHA workarounds. Add one post or profile URL per line.</p>
+      <textarea id="it-known-urls" rows="4" aria-label="Public post or profile URLs" placeholder="https://www.example.com/public-post"></textarea>
+      <div class="row">
+        <input type="text" id="it-authorization-note" maxlength="500" placeholder="Authorization note (required)" aria-label="Authorization note">
+        <label class="inline"><input type="checkbox" id="it-scan-authorized"> I am authorized to review these public links</label>
+        <button class="ghost" id="it-scan" type="button" disabled>Scan these links</button>
+      </div>
+      <div class="status-line" id="it-scanstatus" role="status"></div>
+      <div class="hidden" id="it-resultswrap">
+        <div class="row">
+          <select id="it-filter" aria-label="Filter by platform"><option value="">All platforms</option></select>
+          <label class="inline"><input type="checkbox" id="it-social-only"> Social media only</label>
+          <button class="ghost" id="it-csv" type="button">Download CSV</button>
+        </div>
+        <div style="overflow-x:auto;margin-top:12px">
+          <table class="results" id="it-results"></table>
+        </div>
+        <div class="warn" id="it-notes"></div>
+        <p class="note">Private accounts, stories, and unindexed posts cannot be found by public reverse-search indexes.</p>
+      </div>
+    </div>
+
+    <!-- 4. Compare -->
+    <div class="card hidden" id="it-compare">
+      <h3>4. Check a candidate copy</h3>
+      <p class="note" style="margin-top:0">Found a similar-looking image on a platform? Save it and load it here to measure how close it is to your evidence image.</p>
+      <div class="row">
+        <input type="file" id="it-file2" accept="image/*" aria-label="Candidate image">
+      </div>
+      <div class="hidden" id="it-cmpout" style="margin-top:14px">
+        <table id="it-cmptable"></table>
+      </div>
+    </div>
+
+    <!-- 5. Log -->
+    <div class="card hidden" id="it-log">
+      <h3>5. Case record</h3>
+      <p class="note" style="margin-top:0">Download a timestamped record of the hashes, the searches you ran and any comparisons, for your chain-of-custody notes.</p>
+      <div class="row"><button id="it-export" type="button">Download case record (JSON)</button></div>
+      <div class="warn">"No matches found" only means the image was not found in the indexes that were searched. Private accounts, stories and unindexed posts cannot be searched by any tool, so absence of results does not prove the image is not online.</div>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const $ = s => document.querySelector('#image-trace ' + s);
+  const state = { file:null, pendingFileKey:null, currentFileKey:null, hashes:null, meta:null, searches:[], comparisons:[], results:[], engineStatuses:{}, engineDetails:{}, deepSearchAvailable:false, retryAvailable:false, searching:false, scanning:false, searchController:null, scanController:null, autoSearchFileKey:null, uploadId:0 };
+  const updateSearchButton = () => {
+    const busy = state.searching || state.scanning;
+    $('#it-run').disabled = !state.file || !$('#it-consent').checked || busy;
+    $('#it-deep-search').disabled = busy;
+    $('#it-retry').disabled = busy;
+    $('#it-deep-search').classList.toggle('hidden', !state.deepSearchAvailable);
+    $('#it-retry').classList.toggle('hidden', !state.retryAvailable);
+    $('#it-social-only').disabled = busy;
+    $('#it-scan').disabled = !state.file || busy || !$('#it-scan-authorized').checked
+      || !$('#it-authorization-note').value.trim() || !$('#it-known-urls').value.trim();
+  };
+
+  /* ---------- image hashing (all local) ---------- */
+  function loadImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => resolve({ img, url });
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Not a readable image')); };
+      img.src = url;
+    });
+  }
+  function gray(img, w, h) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const x = c.getContext('2d', { willReadFrequently:true });
+    x.drawImage(img, 0, 0, w, h);
+    const d = x.getImageData(0, 0, w, h).data;
+    const g = new Float64Array(w * h);
+    for (let i = 0; i < w * h; i++) g[i] = 0.299*d[4*i] + 0.587*d[4*i+1] + 0.114*d[4*i+2];
+    return g;
+  }
+  function bitsToHex(bits) {
+    let s = '';
+    for (let i = 0; i < bits.length; i += 4) s += (bits[i]*8 + bits[i+1]*4 + bits[i+2]*2 + bits[i+3]).toString(16);
+    return s;
+  }
+  function aHash(img) {
+    const g = gray(img, 8, 8); const m = g.reduce((a, b) => a + b, 0) / 64;
+    return bitsToHex(Array.from(g, v => v > m ? 1 : 0));
+  }
+  function dHash(img) {
+    const g = gray(img, 9, 8), b = [];
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) b.push(g[y*9+x] > g[y*9+x+1] ? 1 : 0);
+    return bitsToHex(b);
+  }
+  function pHash(img) {
+    const N = 32, g = gray(img, N, N), cos = [];
+    for (let u = 0; u < 8; u++) { cos[u] = []; for (let x = 0; x < N; x++) cos[u][x] = Math.cos((2*x+1)*u*Math.PI/(2*N)); }
+    const tmp = [];
+    for (let y = 0; y < N; y++) { tmp[y] = []; for (let u = 0; u < 8; u++) { let s = 0; for (let x = 0; x < N; x++) s += g[y*N+x]*cos[u][x]; tmp[y][u] = s; } }
+    const coef = [];
+    for (let v = 0; v < 8; v++) for (let u = 0; u < 8; u++) { let s = 0; for (let y = 0; y < N; y++) s += tmp[y][u]*cos[v][y]; coef.push(s); }
+    const rest = coef.slice(1).sort((a, b) => a - b), med = rest[Math.floor(rest.length / 2)];
+    return bitsToHex(coef.map((c, i) => i === 0 ? 0 : (c > med ? 1 : 0)));
+  }
+  function hamming(a, b) {
+    let x = BigInt('0x' + a) ^ BigInt('0x' + b), n = 0;
+    while (x) { n += Number(x & 1n); x >>= 1n; }
+    return n;
+  }
+  const similarity = (a, b) => Math.round((1 - hamming(a, b) / 64) * 1000) / 10;
+
+  async function sha256(file) {
+    try {
+      const buf = await file.arrayBuffer();
+      const d = await crypto.subtle.digest('SHA-256', buf);
+      return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) { return 'unavailable (open this page over https or localhost)'; }
+  }
+  async function hasExif(file) {
+    const b = new Uint8Array(await file.slice(0, 65536).arrayBuffer());
+    for (let i = 0; i < b.length - 5; i++) if (b[i] === 0x45 && b[i+1] === 0x78 && b[i+2] === 0x69 && b[i+3] === 0x66 && b[i+4] === 0) return true;
+    return false;
+  }
+  async function analyse(file) {
+    const { img, url } = await loadImage(file);
+    if (img.naturalWidth * img.naturalHeight > 40000000) throw new Error('Image dimensions exceed the 40-megapixel safety limit.');
+    const out = {
+      name:file.name, type:file.type || 'unknown', bytes:file.size,
+      width:img.naturalWidth, height:img.naturalHeight,
+      modified:new Date(file.lastModified).toISOString(),
+      exif:(file.type === 'image/jpeg') ? ((await hasExif(file)) ? 'Present (extract with exiftool for details)' : 'Not found (likely stripped)') : 'n/a for this format',
+      sha256:await sha256(file), ahash:aHash(img), dhash:dHash(img), phash:pHash(img)
+    };
+    return { out, url };
+  }
+  async function makeSearchCopy(file) {
+    const { img, url } = await loadImage(file);
+    try {
+      const scale = Math.min(1, 1024 / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Could not prepare the resized search copy.');
+      context.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob(result => result ? resolve(result) : reject(new Error('Could not encode the resized search copy.')), 'image/jpeg', 0.8);
+      });
+      return new File([blob], 'image-trace-search.jpg', { type:'image/jpeg', lastModified:Date.now() });
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  /* ---------- helpers ---------- */
+  const PLATFORMS = [
+    [/(^|\.)instagram\.com$/, 'Instagram'], [/(^|\.)(facebook|fb)\.com$|(^|\.)fb\.watch$/, 'Facebook'],
+    [/(^|\.)(x|twitter)\.com$|(^|\.)t\.co$/, 'X / Twitter'], [/(^|\.)tiktok\.com$/, 'TikTok'],
+    [/(^|\.)(youtube\.com|youtu\.be)$/, 'YouTube'], [/(^|\.)reddit\.com$|(^|\.)redd\.it$/, 'Reddit'],
+    [/(^|\.)pinterest\.[a-z.]+$/, 'Pinterest'], [/(^|\.)linkedin\.com$/, 'LinkedIn'],
+    [/(^|\.)(t\.me|telegram\.me|telegram\.org)$/, 'Telegram'], [/(^|\.)vk\.com$/, 'VK'],
+    [/(^|\.)tumblr\.com$/, 'Tumblr'], [/(^|\.)flickr\.com$/, 'Flickr'], [/(^|\.)medium\.com$/, 'Medium'],
+    [/(^|\.)(whatsapp\.com|wa\.me)$/, 'WhatsApp']
+  ];
+  function platformOf(u) {
+    try { const h = new URL(u).hostname.toLowerCase(); for (const [re, n] of PLATFORMS) if (re.test(h)) return n; return 'Website'; }
+    catch (e) { return 'Unknown'; }
+  }
+  const safeHref = u => { try { const p = new URL(u); return (p.protocol === 'http:' || p.protocol === 'https:') ? p.href : null; } catch (e) { return null; } };
+  const fmtBytes = n => n < 1024 ? n + ' B' : n < 1048576 ? (n/1024).toFixed(1) + ' KB' : (n/1048576).toFixed(2) + ' MB';
+  function el(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    if (props) for (const k in props) { if (k === 'text') e.textContent = props[k]; else e.setAttribute(k, props[k]); }
+    kids.forEach(k => e.append(k));
+    return e;
+  }
+  function kvRows(table, rows) {
+    table.replaceChildren();
+    rows.forEach(([k, v, mono]) => {
+      const td = el('td'); if (v instanceof Node) td.append(v); else td.append(mono ? el('code', { text:v }) : document.createTextNode(String(v)));
+      table.append(el('tr', null, el('th', { text:k }), td));
+    });
+  }
+  const status = (sel, msg, cls) => { const s = $(sel); s.textContent = msg; s.style.color = cls === 'bad' ? 'var(--bad)' : cls === 'good' ? 'var(--good)' : 'var(--muted)'; };
+
+  /* ---------- upload ---------- */
+  const drop = $('#it-drop'), input = $('#it-file');
+  drop.addEventListener('click', () => input.click());
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+  ['dragover', 'dragenter'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => { if (e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); });
+  input.addEventListener('change', () => { if (input.files[0]) handle(input.files[0]); });
+
+  async function handle(file) {
+    const fileKey = [file.name, file.size, file.lastModified, file.type].join(':');
+    if (state.pendingFileKey === fileKey || state.currentFileKey === fileKey) return;
+    if (state.searchController) state.searchController.abort();
+    if (state.scanController) state.scanController.abort();
+    state.searchController = null;
+    state.scanController = null;
+    state.searching = false;
+    state.scanning = false;
+    state.pendingFileKey = fileKey;
+    state.currentFileKey = null;
+    state.autoSearchFileKey = null;
+    const uploadId = ++state.uploadId;
+    state.file = null; state.hashes = null; state.searches = []; state.comparisons = []; state.results = [];
+    state.engineStatuses = {}; state.engineDetails = {}; state.deepSearchAvailable = false; state.retryAvailable = false;
+    updateSearchButton();
+    $('#it-resultswrap').classList.add('hidden');
+    if (!file.type.startsWith('image/')) { state.pendingFileKey = null; status('#it-status', 'That file is not an image.', 'bad'); return; }
+    if (file.size > 15 * 1024 * 1024) { state.pendingFileKey = null; status('#it-status', 'File is larger than 15 MB.', 'bad'); return; }
+    status('#it-status', 'Analysing…');
+    try {
+      const { out, url } = await analyse(file);
+      if (uploadId !== state.uploadId) { URL.revokeObjectURL(url); return; }
+      state.pendingFileKey = null;
+      state.currentFileKey = fileKey;
+      state.file = file; state.hashes = out; state.searches = []; state.comparisons = []; state.results = [];
+      state.engineStatuses = {}; state.engineDetails = {}; state.deepSearchAvailable = false; state.retryAvailable = false;
+      updateSearchButton();
+      $('#it-preview').src = url;
+      kvRows($('#it-meta'), [
+        ['File name', out.name], ['Type', out.type], ['Size', fmtBytes(out.bytes)], ['Dimensions', out.width + ' × ' + out.height + ' px'],
+        ['File modified', out.modified], ['EXIF', out.exif],
+        ['SHA-256', out.sha256, true], ['aHash', out.ahash, true], ['dHash', out.dhash, true], ['pHash', out.phash, true]
+      ]);
+      ['#it-analysis', '#it-search', '#it-compare', '#it-log'].forEach(s => $(s).classList.remove('hidden'));
+      $('#it-resultswrap').classList.add('hidden'); $('#it-cmpout').classList.add('hidden'); $('#it-urllinks').classList.add('hidden');
+      if ($('#it-consent').checked) {
+        status('#it-status', 'Analysis complete. Starting the search…', 'good');
+        void runAutomatedSearch(true);
+      } else {
+        status('#it-status', 'Analysis complete. Confirm external-search consent to start the search automatically.');
+      }
+    } catch (e) {
+      if (uploadId === state.uploadId) {
+        state.pendingFileKey = null;
+        status('#it-status', 'Could not read this image: ' + e.message, 'bad');
+      }
+    }
+  }
+
+  /* ---------- search links ---------- */
+  $('#it-urlbtn').addEventListener('click', () => {
+    const raw = $('#it-url').value.trim(), href = safeHref(raw), box = $('#it-urllinks');
+    if (!href) { box.classList.remove('hidden'); box.replaceChildren(el('span', { class:'note', text:'Enter a full http(s) image URL.' })); return; }
+    const u = encodeURIComponent(href);
+    const links = [
+      ['Google Lens (manual)', 'https://lens.google.com/uploadbyurl?url=' + u],
+      ['Yandex', 'https://yandex.com/images/search?rpt=imageview&url=' + u],
+      ['Bing', 'https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=' + u],
+      ['TinEye', 'https://tineye.com/search?url=' + u]
+    ];
+    box.replaceChildren(...links.map(([n, h]) => el('a', { class:'btn ghost', href:h, target:'_blank', rel:'noopener noreferrer', text:n })));
+    box.classList.remove('hidden');
+    state.searches.push({ time:new Date().toISOString(), type:'manual-url-links', url:href, engines:links.map(l => l[0]) });
+  });
+
+  /* ---------- automated backend search ---------- */
+  $('#it-consent').addEventListener('change', () => {
+    updateSearchButton();
+    if ($('#it-consent').checked && state.file && !state.searching) void runAutomatedSearch(true);
+  });
+  function renderResults() {
+    const f = $('#it-filter').value, t = $('#it-results');
+    t.replaceChildren(el('tr', null, ...['Platform', 'Engine', 'Match type', 'Link', 'Similarity', 'Verified'].map(h => el('th', { text:h }))));
+    state.results.filter(r => (!f || r.platform === f) && (!$('#it-social-only').checked || r.social === true)).forEach(r => {
+      const href = safeHref(r.url || r.post_url);
+      const link = href ? el('a', { href, target:'_blank', rel:'noopener noreferrer', text:href, style:'color:var(--accent)' }) : document.createTextNode('(invalid link)');
+      const matchingImages = (r.matching_images || []).map((imageUrl, index) => {
+        const imageHref = safeHref(imageUrl);
+        return imageHref
+          ? el('a', { href:imageHref, target:'_blank', rel:'noopener noreferrer', text:'Matching image ' + (index + 1), style:'display:block;color:var(--accent)' })
+          : null;
+      }).filter(Boolean);
+      const checking = r.verification_status === 'checking';
+      const sim = (typeof r.similarity === 'number') ? r.similarity.toFixed(1) + '%' : checking ? 'Checking…' : 'n/a';
+      const ver = r.verified ? el('span', { class:'badge good', text:'Verified' })
+        : checking ? el('span', { class:'badge warn', text:'Checking' })
+        : el('span', { class:'badge warn', text:'Unverified' });
+      t.append(el('tr', null, el('td', null, el('span', { class:'badge', text:r.platform })), el('td', { text:(r.engines || []).join(', ') || r.engine || '' }), el('td', { text:r.category || 'match' }), el('td', null, link, ...matchingImages), el('td', { text:sim }), el('td', null, ver)));
+    });
+  }
+  const TRACE_ENGINES = [['google_vision', 'Google Vision'], ['yandex', 'Yandex'], ['tineye', 'TinEye']];
+  function renderEngineStatuses() {
+    const container = $('#it-engine-status');
+    container.replaceChildren(...TRACE_ENGINES.map(([engine, label]) => {
+      const detail = state.engineStatuses[engine] || 'searching';
+      const meta = state.engineDetails[engine] || {};
+      const normalized = String(detail).toLowerCase();
+      const text = normalized === 'searching' ? 'Searching'
+        : normalized === 'matches_found' ? 'Matches found'
+        : normalized === 'no_matches' ? 'No matches'
+        : normalized === 'not_configured' ? 'Not configured'
+        : normalized === 'failed' ? 'Failed' + (meta.error ? ': ' + meta.error : '')
+        : String(detail);
+      const style = normalized === 'matches_found' ? 'badge good'
+        : normalized === 'no_matches' ? 'badge'
+        : normalized === 'failed' ? 'badge bad'
+        : normalized === 'not_configured' || normalized === 'searching' ? 'badge warn'
+        : 'badge bad';
+      const elapsed = Number.isFinite(meta.elapsed_ms) ? ' (' + meta.elapsed_ms + ' ms)' : '';
+      return el('span', { class:style, title:text + elapsed, text:label + ': ' + text });
+    }));
+  }
+  function updatePlatformFilter() {
+    const selected = $('#it-filter').value;
+    const platforms = [...new Set(state.results.map(r => r.platform))].sort();
+    $('#it-filter').replaceChildren(el('option', { value:'', text:'All platforms' }), ...platforms.map(platform => el('option', { value:platform, text:platform })));
+    if (platforms.includes(selected)) $('#it-filter').value = selected;
+  }
+  function mergeEngineResult(incoming) {
+    const existing = state.results.find(result => result.url === incoming.url);
+    if (!existing) {
+      state.results.push({
+        ...incoming,
+        engines: incoming.engines || [incoming.engine].filter(Boolean),
+        verification_status: incoming.image_url ? 'checking' : 'No direct candidate image was supplied by the search engine.'
+      });
+      return;
+    }
+    existing.engines = [...new Set([...(existing.engines || [existing.engine].filter(Boolean)), ...(incoming.engines || [incoming.engine].filter(Boolean))])];
+    if (!existing.image_url) existing.image_url = incoming.image_url;
+    if (!existing.title) existing.title = incoming.title;
+  }
+  async function readTraceEvents(response, onEvent) {
+    if (!response.body) throw new Error('Streaming responses are not supported by this browser.');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const dispatch = async block => {
+      const data = block.split(/\r?\n/).filter(line => line.startsWith('data:')).map(line => line.slice(5).trimStart()).join('\n');
+      if (data) await onEvent(JSON.parse(data));
+    };
+    while (true) {
+      const { value, done } = await reader.read();
+      buffer += decoder.decode(value || new Uint8Array(), { stream:!done });
+      const blocks = buffer.split(/\r?\n\r?\n/);
+      buffer = blocks.pop() || '';
+      for (const block of blocks) await dispatch(block);
+      if (done) break;
+    }
+    if (buffer.trim()) await dispatch(buffer);
+  }
+  $('#it-filter').addEventListener('change', renderResults);
+  $('#it-social-only').addEventListener('change', () => {
+    renderResults();
+    if (state.file && $('#it-consent').checked && !state.searching && !state.scanning) {
+      void runAutomatedSearch(false);
+    }
+    updateSearchButton();
+  });
+  ['#it-known-urls', '#it-authorization-note', '#it-scan-authorized'].forEach(selector => {
+    $(selector).addEventListener('input', updateSearchButton);
+    $(selector).addEventListener('change', updateSearchButton);
+  });
+
+  async function runAutomatedSearch(automatic = false, forceRefresh = false, deepSearch = false) {
+    if (!state.file || !$('#it-consent').checked || state.searching || state.scanning) return;
+    const file = state.file;
+    if (automatic && state.autoSearchFileKey === state.currentFileKey) return;
+    if (automatic) state.autoSearchFileKey = state.currentFileKey;
+    const uploadId = state.uploadId;
+    const startedAt = performance.now();
+    let firstResultMs = null;
+    const controller = new AbortController();
+    state.searchController = controller;
+    state.searching = true;
+    state.deepSearchAvailable = false;
+    state.retryAvailable = false;
+    updateSearchButton();
+    state.results = state.results.filter(result => result.engine === 'known_links');
+    state.engineStatuses = Object.fromEntries(TRACE_ENGINES.map(([engine]) => [engine, 'searching']));
+    state.engineDetails = {};
+    updatePlatformFilter();
+    renderResults();
+    renderEngineStatuses();
+    status('#it-runstatus', deepSearch
+      ? 'Searching the full image first; crops will be tried only for engines with no full-image matches…'
+      : 'Preparing a metadata-stripped JPEG copy, then searching public indexes…');
+    const fd = new FormData();
+    const cid = $('#it-case').value.trim(); if (cid) fd.append('case_id', cid);
+    fd.append('social_only', $('#it-social-only').checked ? 'true' : 'false');
+    fd.append('force_refresh', forceRefresh ? 'true' : 'false');
+    fd.append('deep_search', deepSearch ? 'true' : 'false');
+    try {
+      const searchCopy = await makeSearchCopy(file);
+      fd.append('image', searchCopy, searchCopy.name);
+      let endpoint = $('#it-endpoint').value.trim() || '/api/trace/stream';
+      if (endpoint.endsWith('/api/trace')) endpoint += '/stream';
+      const res = await fetch(endpoint, { method:'POST', body:fd, headers:{ Accept:'text/event-stream' }, signal:controller.signal });
+      if (!res.ok) {
+        let detail = 'HTTP ' + res.status;
+        try { const body = await res.json(); detail = body.detail || body.error || detail; } catch (e) {}
+        throw new Error(detail);
+      }
+      await readTraceEvents(res, event => {
+        if (uploadId !== state.uploadId) return;
+        if (event.type === 'error') throw new Error(event.error || 'Streaming search failed.');
+        if (event.type === 'start') {
+          if (event.cache_hit) status('#it-runstatus', 'Using cached results; refreshing the case record…');
+        } else if (event.type === 'engine') {
+          state.engineStatuses[event.engine] = event.status;
+          state.engineDetails[event.engine] = event.detail || {};
+          renderEngineStatuses();
+          (event.results || []).forEach(mergeEngineResult);
+          if (event.results && event.results.length && firstResultMs === null) {
+            firstResultMs = performance.now() - startedAt;
+            console.info('[Image Trace timing] time_to_first_result_ms=' + Math.round(firstResultMs));
+          }
+          updatePlatformFilter();
+          renderResults();
+          $('#it-resultswrap').classList.remove('hidden');
+          status('#it-runstatus', 'Search results are arriving; local image checks will update them as they finish.');
+        } else if (event.type === 'verification') {
+          const index = state.results.findIndex(result => result.url === event.result.url);
+          if (index >= 0) state.results[index] = { ...state.results[index], ...event.result };
+          renderResults();
+        } else if (event.type === 'complete') {
+          const data = event.record;
+          const knownResults = state.results.filter(result => result.engine === 'known_links');
+          state.results = [...(data.results || []).map(result => ({ ...result, platform:result.platform || platformOf(result.url) })), ...knownResults];
+          state.engineStatuses = data.engine_status || {};
+          state.engineDetails = data.engine_details || {};
+          const searchedStatuses = TRACE_ENGINES.map(([engine]) => state.engineStatuses[engine]);
+          const hasSuccessfulNoMatches = searchedStatuses.includes('no_matches');
+          const allFailed = searchedStatuses.length > 0 && searchedStatuses.every(value => value === 'failed' || value === 'not_configured');
+          state.deepSearchAvailable = !deepSearch && hasSuccessfulNoMatches;
+          state.retryAvailable = allFailed;
+          renderEngineStatuses();
+          updatePlatformFilter();
+          renderResults();
+          $('#it-notes').textContent = (data.notes || []).join('  •  ');
+          $('#it-resultswrap').classList.remove('hidden');
+          const totalMs = performance.now() - startedAt;
+          const timing = { time_to_first_result_ms:firstResultMs, total_time_ms:totalMs, cache_hit:Boolean(data.cache_hit) };
+          state.searches.push({
+            time:data.searched_at || new Date().toISOString(),
+            type:'backend-search',
+            engine_status:data.engine_status || {},
+            engine_details:data.engine_details || {},
+            deep_search:Boolean(data.deep_search),
+            result_count:(data.results || []).length,
+            timing
+          });
+          console.info('[Image Trace timing] ' + JSON.stringify(timing));
+          const firstLabel = firstResultMs === null ? 'No result arrived' : 'First result ' + (firstResultMs / 1000).toFixed(2) + ' s';
+          const summary = (data.results || []).length
+            ? (data.results || []).length + ' result(s).'
+            : allFailed
+              ? 'Search could not be completed. Check provider configuration/connectivity and retry.'
+              : hasSuccessfulNoMatches
+                ? 'No matches found for engines that completed successfully.'
+                : 'No results were returned; no engine reported a successful no-match search.';
+          status('#it-runstatus', summary + ' ' + firstLabel + '; total ' + (totalMs / 1000).toFixed(2) + ' s' + (data.cache_hit ? ' (cached).' : '.'), allFailed ? 'bad' : 'good');
+          status('#it-status', allFailed ? 'Image analysis complete, but automated search could not be completed.' : 'Image analysis and automated search complete.', allFailed ? 'bad' : 'good');
+        }
+      });
+    } catch (e) {
+      if (uploadId === state.uploadId && e.name !== 'AbortError') {
+        state.retryAvailable = true;
+        status('#it-runstatus', 'Search failed: ' + e.message + '. Is the backend running and is the endpoint correct?', 'bad');
+        status('#it-status', 'Image analysis complete, but the automated search failed.', 'bad');
+      }
+    } finally {
+      if (state.searchController === controller) {
+        state.searchController = null;
+        state.searching = false;
+        updateSearchButton();
+      }
+    }
+  }
+  $('#it-run').addEventListener('click', () => { void runAutomatedSearch(false, true); });
+  $('#it-deep-search').addEventListener('click', () => { void runAutomatedSearch(false, true, true); });
+  $('#it-retry').addEventListener('click', () => { void runAutomatedSearch(false, true); });
+
+  async function runKnownLinksScan() {
+    if (!state.file || state.scanning || state.searching || !$('#it-scan-authorized').checked) return;
+    const file = state.file;
+    const urls = $('#it-known-urls').value.split(/\r?\n/).map(url => url.trim()).filter(Boolean);
+    if (!urls.length || urls.length > 20) {
+      status('#it-scanstatus', 'Enter between 1 and 20 public URLs, one per line.', 'bad');
+      return;
+    }
+    const authorizationNote = $('#it-authorization-note').value.trim();
+    if (!authorizationNote) {
+      status('#it-scanstatus', 'Add an authorization note before scanning.', 'bad');
+      return;
+    }
+    const uploadId = state.uploadId;
+    const controller = new AbortController();
+    state.scanController = controller;
+    state.scanning = true;
+    updateSearchButton();
+    status('#it-scanstatus', 'Checking the supplied public links. This may take several minutes for large pages.');
+    try {
+      const fd = new FormData();
+      const scanCopy = await makeSearchCopy(file);
+      fd.append('image', scanCopy, scanCopy.name);
+      fd.append('urls', urls.join('\n'));
+      fd.append('authorization_note', authorizationNote);
+      const caseId = $('#it-case').value.trim();
+      if (caseId) fd.append('case_id', caseId);
+      const response = await fetch('/api/scan', { method:'POST', body:fd, signal:controller.signal });
+      let data;
+      try { data = await response.json(); } catch (e) { throw new Error('Server did not return JSON (HTTP ' + response.status + ')'); }
+      if (!response.ok) throw new Error(data.detail || data.error || ('HTTP ' + response.status));
+      if (uploadId !== state.uploadId) return;
+      const knownResults = (data.results || []).map(r => ({ ...r, platform:r.platform || platformOf(r.url || r.post_url) }));
+      const previousResults = state.results.filter(r => r.engine !== 'known_links');
+      state.results = [...previousResults, ...knownResults];
+      const platforms = [...new Set(state.results.map(r => r.platform))].sort();
+      $('#it-filter').replaceChildren(el('option', { value:'', text:'All platforms' }), ...platforms.map(platform => el('option', { value:platform, text:platform })));
+      renderResults();
+      const notes = Object.entries(data.engine_status || {}).map(([key, value]) => key + ': ' + value);
+      notes.push(...(data.notes || []));
+      $('#it-notes').textContent = notes.join('  •  ');
+      $('#it-resultswrap').classList.remove('hidden');
+      state.searches.push({ time:data.searched_at || new Date().toISOString(), type:'known-links-scan', result_count:knownResults.length, scanned_urls:data.scanned_urls || [] });
+      status('#it-scanstatus', knownResults.length ? knownResults.length + ' matching image(s) found on the supplied links.' : 'Scan finished; no qualifying copies were found on the supplied links.', 'good');
+    } catch (e) {
+      if (uploadId === state.uploadId && e.name !== 'AbortError') {
+        status('#it-scanstatus', 'Known-links scan failed: ' + e.message, 'bad');
+      }
+    } finally {
+      if (state.scanController === controller) {
+        state.scanController = null;
+        state.scanning = false;
+        updateSearchButton();
+      }
+    }
+  }
+  $('#it-scan').addEventListener('click', () => { void runKnownLinksScan(); });
+
+  $('#it-csv').addEventListener('click', () => {
+    const esc = v => { let s = String(v ?? ''); if (/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+    const rows = [['platform', 'engine', 'category', 'url', 'image_url', 'similarity', 'verified']].concat(state.results.map(r => [r.platform, r.engine, r.category, r.url, r.image_url, r.similarity, r.verified]));
+    download('image-trace-results.csv', 'text/csv', rows.map(r => r.map(esc).join(',')).join('\n'));
+  });
+
+  /* ---------- compare a candidate ---------- */
+  $('#it-file2').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f || !state.hashes) return;
+    try {
+      const { out } = await analyse(f);
+      const base = state.hashes;
+      const dS = similarity(base.dhash, out.dhash), pS = similarity(base.phash, out.phash), aS = similarity(base.ahash, out.ahash);
+      const best = Math.max(dS, pS);
+      let verdict, cls;
+      if (out.sha256 === base.sha256) { verdict = 'Byte-identical file (same SHA-256)'; cls = 'good'; }
+      else if (best >= 90) { verdict = 'Very likely the same image (resized or recompressed)'; cls = 'good'; }
+      else if (best >= 75) { verdict = 'Possibly an edited or cropped version, review manually'; cls = 'warn'; }
+      else { verdict = 'Different image'; cls = 'bad'; }
+      kvRows($('#it-cmptable'), [
+        ['Candidate', out.name], ['Verdict', el('span', { class:'badge ' + cls, text:verdict })],
+        ['dHash similarity', dS + '%'], ['pHash similarity', pS + '%'], ['aHash similarity', aS + '%'],
+        ['Candidate SHA-256', out.sha256, true]
+      ]);
+      $('#it-cmpout').classList.remove('hidden');
+      state.comparisons.push({ time:new Date().toISOString(), candidate:out.name, candidate_sha256:out.sha256, dhash_similarity:dS, phash_similarity:pS, ahash_similarity:aS, verdict });
+    } catch (err) { kvRows($('#it-cmptable'), [['Error', err.message]]); $('#it-cmpout').classList.remove('hidden'); }
+  });
+
+  /* ---------- export record ---------- */
+  function download(name, type, text) {
+    const a = document.createElement('a'), u = URL.createObjectURL(new Blob([text], { type }));
+    a.href = u; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 1000);
+  }
+  $('#it-export').addEventListener('click', () => {
+    if (!state.hashes) return;
+    const rec = {
+      tool:'Image Trace (browser section)', exported_at:new Date().toISOString(), case_id:$('#it-case').value.trim() || null,
+      evidence:state.hashes, searches:state.searches, comparisons:state.comparisons, backend_results:state.results,
+      limitations:'Absence of matches only reflects the indexes searched. Perceptual-hash similarity indicates likelihood, not proof of identity.'
+    };
+    download('image-trace-case-record.json', 'application/json', JSON.stringify(rec, null, 2));
+  });
+})();
+</script>
+<!-- ===================== END SECTION ===================== -->
+</body>
+</html>

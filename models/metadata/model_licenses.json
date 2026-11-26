@@ -1,0 +1,37 @@
+{
+  "deepfakebench-v1": {
+    "license": "CC BY-NC 4.0",
+    "source": "https://github.com/SCLBD/DeepfakeBench/blob/main/LICENSE",
+    "restriction": "Noncommercial use only; third-party component and weight terms may differ.",
+    "installationAllowed": false,
+    "reason": "Administrator selected shared noncommercial deployment with restricted models blocked until separately cleared."
+  },
+  "genconvit": {
+    "license": "Weights: CC BY-NC 4.0; source code: MIT",
+    "source": "https://huggingface.co/Deressa/GenConViT",
+    "restriction": "Weights may be used only for noncommercial purposes under CC BY-NC 4.0. Preserve attribution and do not use in a commercial service.",
+    "installationAllowed": true,
+    "reason": "The administrator selected GenConViT for the previously declared shared noncommercial deployment."
+  },
+  "lipforensics": {
+    "license": "Repository source is MIT; separately hosted checkpoint license is unverified.",
+    "source": "https://github.com/ahaliassos/LipForensics/blob/d0bf5553bfb9676f1771d590472b26a3a76de894/LICENSE",
+    "restriction": "The official README links a pretrained checkpoint hosted on Google Drive but does not state separate checkpoint terms. Do not infer checkpoint rights from the source-code license.",
+    "installationAllowed": false,
+    "reason": "Checkpoint redistribution and shared-deployment rights have not been established."
+  },
+  "self-blended-images": {
+    "license": "Academic/non-profit organization noncommercial internal research only.",
+    "source": "https://github.com/mapooon/SelfBlendedImages/blob/master/LICENSE",
+    "restriction": "Commercial use requires a separate license; the agreement prohibits providing third parties access.",
+    "installationAllowed": false,
+    "reason": "The requested deployment is shared, and the published license prohibits third-party access."
+  },
+  "mediapipe-face-landmarker": {
+    "license": "Model asset license not established from the downloaded asset metadata; runtime package is Apache-2.0.",
+    "source": "https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker",
+    "restriction": "Review model-asset terms before redistribution or reinstalling.",
+    "installationAllowed": false,
+    "reason": "Reuse of the already-installed local asset is retained; no new model download is authorized."
+  }
+}

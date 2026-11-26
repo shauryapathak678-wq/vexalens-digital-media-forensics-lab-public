@@ -1,0 +1,66 @@
+services:
+  npr-deepfake:
+    build:
+      context: .
+      dockerfile: Dockerfile.npr
+    environment:
+      MODEL_PORT: "5001"
+      PRELOAD_MODEL: "true"
+      MODEL_TIMEOUT: "0"
+      USE_GPU: "false"
+    expose:
+      - "5001"
+    mem_limit: ${DEEPSAFE_NPR_MEMORY_LIMIT:-1536m}
+    networks:
+      - deepsafe-private
+    restart: unless-stopped
+
+  universal-fake-detect:
+    build:
+      context: .
+      dockerfile: Dockerfile.ufd
+    environment:
+      MODEL_PORT: "5004"
+      PRELOAD_MODEL: "true"
+      MODEL_TIMEOUT: "0"
+      USE_GPU: "false"
+    expose:
+      - "5004"
+    mem_limit: ${DEEPSAFE_UFD_MEMORY_LIMIT:-4g}
+    networks:
+      - deepsafe-private
+    restart: unless-stopped
+
+  vexalens-deepsafe-image:
+    build:
+      context: ../backend/deepsafe_image_service
+      dockerfile: Dockerfile
+    environment:
+      DEEPSAFE_IMAGE_SERVICE_TOKEN: ${DEEPSAFE_IMAGE_SERVICE_TOKEN:?Set DEEPSAFE_IMAGE_SERVICE_TOKEN in this directory's .env}
+      DEEPSAFE_NPR_PREDICT_URL: http://npr-deepfake:5001/predict
+      DEEPSAFE_UFD_PREDICT_URL: http://universal-fake-detect:5004/predict
+      DEEPSAFE_MODEL_TIMEOUT_SECONDS: "90"
+    ports:
+      - "127.0.0.1:${DEEPSAFE_IMAGE_SERVICE_PORT:-8010}:8010"
+    depends_on:
+      - npr-deepfake
+      - universal-fake-detect
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/healthz', timeout=2)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - deepsafe-private
+      - deepsafe-host
+    restart: unless-stopped
+
+networks:
+  deepsafe-private:
+    internal: true
+  deepsafe-host:
+    driver: bridge

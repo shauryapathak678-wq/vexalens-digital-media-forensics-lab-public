@@ -1,0 +1,18 @@
+Audio-video synchronization sample
+
+Source: NASA, "Live Interviews with NASA Astronaut Jeanette Epps," October 4,
+2019, NASA asset iss061m2627771232_Live_Interviews_Jeanette_Epps_191004.
+Original asset: https://images.nasa.gov/details/iss061m2627771232_Live_Interviews_Jeanette_Epps_191004
+
+The bundled 20-second clip is taken from 00:00:30 through 00:00:50 of NASA's
+preview rendition and was re-encoded to H.264/AAC for browser playback. NASA
+states that its media is generally not subject to U.S. copyright when used
+factually for educational or informational purposes. NASA media usage
+guidelines: https://www.nasa.gov/nasa-brand-center/images-and-media/
+
+This educational synchronization simulation is not endorsed by NASA. NASA
+insignia and branding are not used as product branding. Identifiable-person
+rights may apply to commercial or promotional uses; review NASA's guidelines
+before such deployment. The small audio-video-sync-waveform.json file contains
+measured amplitude peaks from the bundled clip's audio track for visualization;
+it is not a second media source.

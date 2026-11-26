@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "deploymentContext": "shared_noncommercial",
+  "restrictedModelPolicy": "block_until_separately_cleared",
+  "initialDownloadPolicy": "registry_only",
+  "models": [
+    {
+      "id": "deepfakebench-v1",
+      "name": "DeepfakeBench v1.0.1 frame-level checkpoints",
+      "repositoryUrl": "https://github.com/SCLBD/DeepfakeBench",
+      "releaseUrl": "https://github.com/SCLBD/DeepfakeBench/releases/tag/v1.0.1",
+      "modelVersion": "v1.0.1",
+      "licenseId": "CC-BY-NC-4.0",
+      "licenseName": "CC BY-NC 4.0; third-party components and weights may have separate terms",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/",
+      "licenseGate": "blocked_until_separately_cleared",
+      "supportedDetectionCategory": "Face manipulation classifiers on individual frames; not a video-level temporal result",
+      "compatibility": {
+        "status": "incompatible_current_runtime",
+        "officialPython": "3.7.2",
+        "officialPyTorch": "1.11",
+        "videoLevelCheckpoint": false,
+        "notes": "The v1.0.1 release contains frame classifiers. Its release assets do not include a temporal video detector checkpoint. Current host Python is 3.12 and PyTorch is not installed."
+      },
+      "installationStatus": "check_required",
+      "inferenceStatus": "not_run",
+      "reinstallAllowed": false,
+      "files": [
+        { "name": "capsule_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/capsule_best.pth", "localPath": "models/face_manipulation/deepfakebench/capsule_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 15694749, "expectedSha256": null, "sha256Published": false },
+        { "name": "cnnaug_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/cnnaug_best.pth", "localPath": "models/face_manipulation/deepfakebench/cnnaug_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 85285901, "expectedSha256": null, "sha256Published": false },
+        { "name": "core_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/core_best.pth", "localPath": "models/face_manipulation/deepfakebench/core_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 87766765, "expectedSha256": null, "sha256Published": false },
+        { "name": "effnb4_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/effnb4_best.pth", "localPath": "models/face_manipulation/deepfakebench/effnb4_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 70979261, "expectedSha256": null, "sha256Published": false },
+        { "name": "f3net_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/f3net_best.pth", "localPath": "models/face_manipulation/deepfakebench/f3net_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 90398839, "expectedSha256": null, "sha256Published": false },
+        { "name": "ffd_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/ffd_best.pth", "localPath": "models/face_manipulation/deepfakebench/ffd_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 87796541, "expectedSha256": null, "sha256Published": false },
+        { "name": "meso4Incep_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/meso4Incep_best.pth", "localPath": "models/face_manipulation/deepfakebench/meso4Incep_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 126419, "expectedSha256": null, "sha256Published": false },
+        { "name": "meso4_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/meso4_best.pth", "localPath": "models/face_manipulation/deepfakebench/meso4_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 117943, "expectedSha256": null, "sha256Published": false },
+        { "name": "recce_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/recce_best.pth", "localPath": "models/face_manipulation/deepfakebench/recce_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 191466941, "expectedSha256": null, "sha256Published": false },
+        { "name": "spsl_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/spsl_best.pth", "localPath": "models/face_manipulation/deepfakebench/spsl_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 87764683, "expectedSha256": null, "sha256Published": false },
+        { "name": "srm_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/srm_best.pth", "localPath": "models/face_manipulation/deepfakebench/srm_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 222088575, "expectedSha256": null, "sha256Published": false },
+        { "name": "ucf_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/ucf_best.pth", "localPath": "models/face_manipulation/deepfakebench/ucf_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 188006161, "expectedSha256": null, "sha256Published": false },
+        { "name": "xception_best.pth", "checkpointUrl": "https://github.com/SCLBD/DeepfakeBench/releases/download/v1.0.1/xception_best.pth", "localPath": "models/face_manipulation/deepfakebench/xception_best.pth", "modelVersion": "v1.0.1", "expectedSizeBytes": 87763531, "expectedSha256": null, "sha256Published": false }
+      ],
+      "sizeNotes": "GitHub release API reports individual sizes; it publishes no SHA-256 digests for these assets."
+    },
+    {
+      "id": "genconvit",
+      "name": "GenConViT video detector",
+      "repositoryUrl": "https://github.com/erprogs/GenConViT",
+      "modelHostingUrl": "https://huggingface.co/Deressa/GenConViT",
+      "modelVersion": "Hugging Face revision 32d6e9e3c931a37971cc756da706cf1eef643372",
+      "licenseId": "CC-BY-NC-4.0",
+      "licenseName": "Weights: CC BY-NC 4.0; source code: MIT. Noncommercial use only.",
+      "licenseUrl": "https://huggingface.co/Deressa/GenConViT",
+      "licenseGate": "clear",
+      "supportedDetectionCategory": "Rapid single-frame GenConViT-ED screening and optional full 15-frame ED+VAE video screening",
+      "compatibility": {
+        "status": "cpu_inference_verified_reference_host",
+        "officialPython": "Python 3.x (repository does not pin an exact tested version)",
+        "requiredFrameworks": ["PyTorch", "torchvision", "dlib", "timm"],
+        "videoFrames": "15 uniformly sampled frames; original face-crop and ImageNet normalization pipeline",
+        "maxVideoDurationSeconds": 60,
+        "notes": "After startup preloading, a real rapid-mode request through the VexaLens web proxy completed end-to-end in 46.7 seconds on the reference CPU, using one central face frame and GenConViT-ED. The full 15-frame ED+VAE run took 274.8 seconds. Rapid mode has much lower frame coverage and is not equivalent to full screening. Runtime varies by hardware. Benchmark metrics are dataset-specific, not accuracy guarantees for a submitted video. Neither mode classifies mouth-motion origin."
+      },
+      "installationStatus": "check_required",
+      "inferenceStatus": "not_run",
+      "reinstallAllowed": true,
+      "files": [
+        { "name": "genconvit_ed_inference.pth", "checkpointUrl": "https://huggingface.co/Deressa/GenConViT/resolve/32d6e9e3c931a37971cc756da706cf1eef643372/genconvit_ed_inference.pth", "localPath": "models/genconvit/genconvit_ed_inference.pth", "modelVersion": "32d6e9e3", "expectedSizeBytes": 238174949, "expectedSha256": "86f0c2e875016435def7d031b357bda5dc0061367290d73de121186df3f03f8c", "sha256Published": true },
+        { "name": "genconvit_vae_inference.pth", "checkpointUrl": "https://huggingface.co/Deressa/GenConViT/resolve/32d6e9e3c931a37971cc756da706cf1eef643372/genconvit_vae_inference.pth", "localPath": "models/genconvit/genconvit_vae_inference.pth", "modelVersion": "32d6e9e3", "expectedSizeBytes": 2782175601, "expectedSha256": "53c627c82d1439fc80e18ac462c1ed6969a3babe5376124a5c38d1c0c88c9042", "sha256Published": true }
+      ],
+      "sizeNotes": "3,020,350,550 bytes combined. File sizes and SHA-256 references are published by Hugging Face at the pinned revision. Weights remain local and are not stored in Git."
+    },
+    {
+      "id": "lipforensics",
+      "name": "LipForensics FF++ checkpoint",
+      "repositoryUrl": "https://github.com/ahaliassos/LipForensics",
+      "modelVersion": "FF++-trained checkpoint (version not published)",
+      "licenseId": "CHECKPOINT_LICENSE_UNVERIFIED",
+      "licenseName": "Repository source is MIT; the separately hosted checkpoint has no distinct license statement in the official README",
+      "licenseUrl": "https://github.com/ahaliassos/LipForensics/blob/d0bf5553bfb9676f1771d590472b26a3a76de894/LICENSE",
+      "licenseGate": "blocked_until_checkpoint_rights_confirmed",
+      "supportedDetectionCategory": "Temporal mouth-region face-forgery classification on evaluated manipulation datasets; not a universal natural-versus-AI talking-head detector",
+      "compatibility": {
+        "status": "unavailable_current_runtime",
+        "officialPython": "Python 3.8 (repository tested version)",
+        "officialPyTorch": "1.9.0",
+        "officialTorchvision": "0.10.0",
+        "requiredFrameworks": ["PyTorch 1.9.0", "torchvision 0.10.0", "face detector", "68-point facial landmarks"],
+        "defaultDevice": "cuda:0; evaluation CLI supports selecting another device, including CPU",
+        "preprocessing": "The published pipeline expects 68-point landmarks, temporally smoothed face alignment, 96x96 mouth crops, 25-frame clips, an 88x88 center crop, and grayscale normalization (mean 0.421, standard deviation 0.165).",
+        "notes": "The official repo README tests Python 3.8 and does not specify the separate Drive checkpoint's license. Current host Python 3.12.10 has no PyTorch and no NVIDIA GPU. Existing MediaPipe 478-point output is not a drop-in replacement for the pipeline's 68-point landmarks. The model was evaluated on named face-forgery datasets; it is not evidence that every AI-generated talking head can be identified."
+      },
+      "installationStatus": "check_required",
+      "inferenceStatus": "not_run",
+      "reinstallAllowed": false,
+      "files": [
+        { "name": "lipforensics_ff.pth", "checkpointUrl": "https://drive.google.com/file/d/1wfZnxZpyNd5ouJs0LjVls7zU0N_W73L7/view?usp=sharing", "localPath": "models/talking_face/lipforensics_ff.pth", "modelVersion": "FF++-trained (unversioned)", "expectedSizeBytes": null, "expectedSha256": null, "sha256Published": false }
+      ],
+      "sizeNotes": "Checkpoint size and publisher SHA-256 were not available from the repository README. Source code review pinned to d0bf5553bfb9676f1771d590472b26a3a76de894; checkpoint remains unversioned."
+    },
+    {
+      "id": "self-blended-images",
+      "name": "Self-Blended Images EfficientNet-B4",
+      "repositoryUrl": "https://github.com/mapooon/SelfBlendedImages",
+      "modelVersion": "FF-raw and FF-c23 weights (release version not published)",
+      "licenseId": "ACADEMIC_NONCOMMERCIAL_INTERNAL_RESEARCH_ONLY",
+      "licenseName": "Academic/non-profit noncommercial internal research only; third-party access is prohibited by the license",
+      "licenseUrl": "https://github.com/mapooon/SelfBlendedImages/blob/master/LICENSE",
+      "licenseGate": "blocked_for_shared_service",
+      "supportedDetectionCategory": "Face forgery classification; original repository provides video inference",
+      "compatibility": {
+        "status": "hardware_incompatible_current_host",
+        "requiredFrameworks": ["PyTorch", "CUDA 11.1", "OpenCV", "dlib"],
+        "officialHardware": "NVIDIA A100 recommended",
+        "notes": "Current host has Intel Iris Xe, no NVIDIA runtime, and no PyTorch. The repository's license does not allow third-party access."
+      },
+      "installationStatus": "check_required",
+      "inferenceStatus": "not_run",
+      "reinstallAllowed": false,
+      "files": [
+        { "name": "FFraw.tar", "checkpointUrl": "https://drive.google.com/uc?export=download&id=12sLyqBp0VFwdpA-oZLdIOkOTkz_ZnIhV", "localPath": "models/face_manipulation/self_blended_images/FFraw.tar", "modelVersion": "FF-raw", "expectedSizeBytes": null, "expectedSha256": null, "sha256Published": false },
+        { "name": "FFc23.tar", "checkpointUrl": "https://drive.google.com/uc?export=download&id=1X0-NYT8KPursLZZdxduRQju6E52hauV0", "localPath": "models/face_manipulation/self_blended_images/FFc23.tar", "modelVersion": "FF-c23", "expectedSizeBytes": null, "expectedSha256": null, "sha256Published": false }
+      ],
+      "sizeNotes": "Official README does not state checkpoint sizes."
+    },
+    {
+      "id": "mediapipe-face-landmarker",
+      "name": "MediaPipe Face Landmarker",
+      "repositoryUrl": "https://github.com/google-ai-edge/mediapipe",
+      "modelHostingUrl": "https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker",
+      "latestModelUrl": "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task",
+      "modelVersion": "1 (pinned local asset)",
+      "licenseId": "MODEL_ASSET_TERMS_REVIEW_REQUIRED",
+      "licenseName": "MediaPipe runtime package is Apache-2.0; the downloaded model asset's separate license was not established from its metadata",
+      "licenseUrl": "https://github.com/google-ai-edge/mediapipe/blob/master/LICENSE",
+      "licenseGate": "installed_asset_reuse_only",
+      "supportedDetectionCategory": "Face tracking and facial landmarks; not a deepfake classifier",
+      "compatibility": {
+        "status": "compatible_browser_runtime",
+        "runtime": "@mediapipe/tasks-vision 1.2.3",
+        "hardware": "CPU inference verified; GPU optional",
+        "notes": "Local model file is served from public/models/lipsync for the browser. The official model family returns 478 landmarks; dashboard smoke test records the actual count."
+      },
+      "installationStatus": "check_required",
+      "inferenceStatus": "not_run",
+      "reinstallAllowed": false,
+      "files": [
+        { "name": "face_landmarker.task", "checkpointUrl": "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task", "localPath": "public/models/lipsync/face_landmarker.task", "modelVersion": "1", "expectedSizeBytes": 3758596, "expectedSha256": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff", "sha256Published": false }
+      ],
+      "sizeNotes": "Size and SHA-256 are pinned from the previously verified local asset; the publisher does not publish this checksum."
+    }
+  ]
+}

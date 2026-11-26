@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f4">
+    <title>GPS Image Tracker</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    >
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #17241d;
+        background: #f5f7f4;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      main { width: min(100% - 32px, 920px); margin: 0 auto; padding: 52px 0 64px; }
+      .eyebrow { color: #357455; font-size: .75rem; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+      h1 { margin: 10px 0 12px; font-size: clamp(2rem, 7vw, 3.35rem); letter-spacing: -.055em; line-height: 1.05; }
+      .intro { max-width: 650px; margin: 0; color: #59665f; font-size: 1.05rem; line-height: 1.65; }
+      .card { margin-top: 30px; padding: clamp(20px, 5vw, 34px); border: 1px solid #e1e8e1; border-radius: 20px; background: #fff; box-shadow: 0 14px 40px rgb(28 58 39 / 6%); }
+      form { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; }
+      .file-field { flex: 1 1 280px; }
+      label { display: block; margin-bottom: 9px; font-size: .9rem; font-weight: 700; }
+      input[type="file"] { width: 100%; padding: 12px; border: 1px solid #d6dfd7; border-radius: 10px; background: #fbfcfb; font: inherit; }
+      button { min-height: 48px; padding: 0 21px; border: 0; border-radius: 10px; background: #23734b; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+      button:hover { background: #195d3b; }
+      button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #78b994; outline-offset: 3px; }
+      .hint, .privacy { margin: 12px 0 0; color: #68756d; font-size: .85rem; line-height: 1.55; }
+      .alert { margin-top: 20px; padding: 14px 16px; border-radius: 10px; background: #fff1ed; color: #963c27; line-height: 1.5; }
+      .result { margin-top: 26px; }
+      .result h2 { margin: 0 0 16px; font-size: 1.35rem; letter-spacing: -.02em; }
+      .status { padding: 17px; border-radius: 12px; background: #f0f7f1; color: #3e5546; line-height: 1.6; }
+      .details { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin: 18px 0; }
+      .detail { padding: 15px; border: 1px solid #e5ebe5; border-radius: 12px; }
+      .detail dt { margin-bottom: 7px; color: #6a776f; font-size: .77rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+      .detail dd { margin: 0; overflow-wrap: anywhere; font-weight: 650; }
+      a { color: #176a43; font-weight: 700; }
+      .map-link { display: inline-block; margin: 2px 0 20px; }
+      #map { height: 360px; border: 1px solid #dfe7df; border-radius: 14px; }
+      .preview { display: block; width: 100%; max-height: 560px; margin-top: 20px; border-radius: 14px; background: #f0f2f0; object-fit: contain; }
+      footer { margin-top: 22px; color: #718078; font-size: .8rem; line-height: 1.6; }
+      @media (max-width: 560px) {
+        main { padding-top: 32px; }
+        form button { width: 100%; }
+        #map { height: 300px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="eyebrow">Private, on-device metadata check</div>
+        <h1>GPS Image Tracker</h1>
+        <p class="intro">Check whether your photo contains GPS coordinates in its EXIF metadata. The location is read from the image itself; no location-detection API is used.</p>
+      </header>
+
+      <section class="card" aria-label="Upload a photo">
+        <form method="post" enctype="multipart/form-data">
+          <div class="file-field">
+            <label for="photo">Choose a photo</label>
+            <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,.heic,.tiff" required>
+            <p class="hint">JPG, JPEG, PNG, HEIC, or TIFF · maximum 20 MB</p>
+          </div>
+          <button type="submit">Detect Location</button>
+        </form>
+
+        {% if error %}
+          <div class="alert" role="alert">{{ error }}</div>
+        {% endif %}
+
+        {% if gps is not none %}
+          <section class="result" aria-live="polite">
+            <h2>Location found</h2>
+            <dl class="details">
+              <div class="detail">
+                <dt>Latitude</dt>
+                <dd>{{ "%.7f"|format(gps.latitude) }}</dd>
+              </div>
+              <div class="detail">
+                <dt>Longitude</dt>
+                <dd>{{ "%.7f"|format(gps.longitude) }}</dd>
+              </div>
+              <div class="detail">
+                <dt>Date and time taken</dt>
+                <dd>{{ gps.date_time or "Not recorded" }}</dd>
+              </div>
+              <div class="detail">
+                <dt>Camera</dt>
+                <dd>{{ [gps.camera_make, gps.camera_model]|select|join(" ") or "Not recorded" }}</dd>
+              </div>
+            </dl>
+            <a class="map-link" href="https://www.google.com/maps?q={{ gps.latitude }},{{ gps.longitude }}" target="_blank" rel="noopener noreferrer">Open coordinates in Google Maps ↗</a>
+            <div id="map" role="img" aria-label="Map showing the photo's GPS coordinates"></div>
+          </section>
+        {% elif preview %}
+          <section class="result" aria-live="polite">
+            <h2>No location tag found</h2>
+            <p class="status">This photo has no GPS location tag. WhatsApp, Instagram, and screenshots usually strip location data. Make sure your camera's location setting is turned on, then upload the original photo.</p>
+          </section>
+        {% endif %}
+
+        {% if preview %}
+          <img class="preview" src="{{ preview }}" alt="Preview of the uploaded photo">
+        {% endif %}
+      </section>
+
+      <footer>
+        The photo is processed locally and its temporary upload is deleted after analysis. The map uses OpenStreetMap tiles and Leaflet from public servers to display a found pin; no photo is sent to those services.
+      </footer>
+    </main>
+    {% if gps is not none %}
+      <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+      ></script>
+      <script>
+        const point = {{ [gps.latitude, gps.longitude]|tojson }};
+        const map = L.map("map").setView(point, 16);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        L.marker(point).addTo(map).bindPopup("Photo location").openPopup();
+      </script>
+    {% endif %}
+  </body>
+</html>

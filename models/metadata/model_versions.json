@@ -1,0 +1,14 @@
+{
+  "deepfakebench-v1": "v1.0.1 release",
+  "genconvit": {
+    "revision": "32d6e9e3c931a37971cc756da706cf1eef643372",
+    "source": "https://huggingface.co/Deressa/GenConViT",
+    "repositoryRevision": "2c1d0bd7eecea94926595781a744e3f4b8b55290"
+  },
+  "lipforensics": {
+    "checkpoint": "FF++-trained; version not published",
+    "repositoryRevision": "d0bf5553bfb9676f1771d590472b26a3a76de894"
+  },
+  "self-blended-images": "FF-raw and FF-c23; release versions not published",
+  "mediapipe-face-landmarker": "Model asset version 1; runtime @mediapipe/tasks-vision 1.2.3"
+}

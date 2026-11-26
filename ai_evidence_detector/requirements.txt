@@ -1,0 +1,9 @@
+torch
+pillow
+huggingface_hub
+sentence-transformers
+easyocr
+fastapi
+uvicorn
+python-multipart
+

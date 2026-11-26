@@ -1,0 +1,275 @@
+.royal-page {
+  --font-display: 'Playfair Display', 'Cinzel', Georgia, serif;
+  --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --royal-gold: #e2c47c;
+  --royal-purple: #a895d5;
+  --royal-emerald: #83c9a3;
+  --vl-bg: #080913;
+  --vl-surface: rgba(20, 21, 36, 0.78);
+  --vl-surface-elevated: rgba(31, 31, 50, 0.86);
+  --vl-surface-subtle: rgba(14, 15, 27, 0.82);
+  --vl-border: rgba(226, 196, 124, 0.2);
+  --vl-border-subtle: rgba(226, 196, 124, 0.12);
+  --vl-border-highlight: rgba(226, 196, 124, 0.55);
+  --vl-electric-blue: #e2c47c;
+  --vl-ice-cyan: #e2c47c;
+  --vl-accent-glow: rgba(226, 196, 124, 0.12);
+  --vl-ai-violet: #a895d5;
+  --vl-evidence-amber: #e2c47c;
+  --vl-text-primary: #f7f2e7;
+  --vl-text-secondary: #c9c1b2;
+  --vl-text-dim: #a29a8c;
+  --vl-card-shadow: 0 18px 48px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.055);
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+  color: var(--vl-text-primary);
+  background:
+    radial-gradient(ellipse 75% 48% at 82% 4%, var(--royal-highlight, rgba(119, 88, 158, 0.13)), transparent 70%),
+    radial-gradient(ellipse 65% 55% at 2% 92%, rgba(149, 113, 48, 0.1), transparent 72%),
+    linear-gradient(145deg, rgba(10, 11, 21, 0.96), rgba(8, 9, 19, 0.91));
+  border: 1px solid rgba(226, 196, 124, 0.14);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.royal-page::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(rgba(226, 196, 124, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 196, 124, 0.028) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 60% 35%, #000 15%, transparent 85%);
+  content: '';
+  pointer-events: none;
+}
+
+.royal-page--evidence,
+.royal-page--admin {
+  --royal-highlight: rgba(149, 113, 48, 0.15);
+}
+
+.royal-page--history {
+  --royal-highlight: rgba(146, 117, 196, 0.18);
+}
+
+.royal-page--lab {
+  --royal-highlight: rgba(67, 144, 111, 0.16);
+}
+
+.royal-page__scene {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.royal-page__scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.royal-page__content {
+  position: relative;
+  z-index: 1;
+}
+
+.royal-page h1,
+.royal-page h2,
+.royal-page h3 {
+  font-family: var(--font-display);
+  text-wrap: pretty;
+}
+
+.royal-page h1 {
+  letter-spacing: 0.005em;
+}
+
+.royal-page [data-royal-tilt] {
+  position: relative;
+  transform: perspective(1100px)
+    rotateX(var(--royal-tilt-x, 0deg))
+    rotateY(var(--royal-tilt-y, 0deg))
+    translateY(0);
+  transform-style: preserve-3d;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.royal-page [data-royal-tilt]::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.065), transparent 38%);
+  content: '';
+  pointer-events: none;
+}
+
+.royal-page [data-royal-tilt]:hover {
+  border-color: rgba(226, 196, 124, 0.42) !important;
+  box-shadow: 0 20px 46px rgba(0, 0, 0, 0.34), 0 0 26px rgba(226, 196, 124, 0.08);
+  transform: perspective(1100px)
+    rotateX(var(--royal-tilt-x, 0deg))
+    rotateY(var(--royal-tilt-y, 0deg))
+    translateY(-4px);
+}
+
+.royal-page :is(section, article)[class*='rounded-xl'][class*='border'] {
+  border-color: rgba(226, 196, 124, 0.17);
+  background-color: rgba(20, 21, 36, 0.68);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 16px 42px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+html.dark .royal-page [class*='bg-slate-950'],
+html.dark .royal-page [class*='bg-slate-900'],
+html.dark .royal-page [class*='bg-slate-800'],
+html.light .royal-page [class*='bg-slate-950'],
+html.light .royal-page [class*='bg-slate-900'],
+html.light .royal-page [class*='bg-slate-800'] {
+  background-color: rgba(17, 18, 31, 0.79) !important;
+}
+
+html.dark .royal-page [class*='border-slate-'],
+html.dark .royal-page [class*='border-cyan-'],
+html.light .royal-page [class*='border-slate-'],
+html.light .royal-page [class*='border-cyan-'] {
+  border-color: rgba(226, 196, 124, 0.2) !important;
+}
+
+html.dark .royal-page [class*='text-cyan-'],
+html.light .royal-page [class*='text-cyan-'] {
+  color: var(--royal-gold) !important;
+}
+
+html.dark .royal-page [class*='bg-cyan-500'],
+html.dark .royal-page [class*='bg-cyan-400'],
+html.light .royal-page [class*='bg-cyan-500'],
+html.light .royal-page [class*='bg-cyan-400'] {
+  background-color: var(--royal-gold) !important;
+  color: #19150e !important;
+}
+
+html.dark .royal-page--lab div[class*='bg-slate-900'][class*='rounded-xl'][class*='border'],
+html.dark .royal-page--lab div[class*='bg-slate-900'][class*='rounded-2xl'][class*='border'],
+html.dark .royal-page--lab div[class*='bg-slate-950'][class*='rounded-xl'][class*='border'],
+html.light .royal-page--lab div[class*='bg-slate-900'][class*='rounded-xl'][class*='border'],
+html.light .royal-page--lab div[class*='bg-slate-900'][class*='rounded-2xl'][class*='border'],
+html.light .royal-page--lab div[class*='bg-slate-950'][class*='rounded-xl'][class*='border'] {
+  border-color: rgba(226, 196, 124, 0.2) !important;
+  background-color: rgba(20, 21, 36, 0.74) !important;
+  background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.045), transparent 52%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 18px 48px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.royal-page--lab .royal-lab-layout {
+  position: relative;
+  z-index: 1;
+  padding-top: clamp(1.25rem, 3vw, 2rem);
+  padding-bottom: clamp(2rem, 4vw, 3.25rem);
+}
+
+.royal-page--lab .royal-lab-layout > div:first-child {
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid rgba(226, 196, 124, 0.18);
+  border-radius: 20px;
+  background: linear-gradient(125deg, rgba(27, 24, 37, 0.82), rgba(15, 17, 29, 0.62));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 48px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.royal-page--lab .royal-lab-layout :is(input, select, textarea) {
+  border-color: rgba(226, 196, 124, 0.22);
+  border-radius: 10px;
+  background-color: rgba(9, 10, 19, 0.76);
+}
+
+.royal-page--lab .royal-lab-layout button {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.royal-page--lab .royal-lab-layout button:hover:not(:disabled) {
+  box-shadow: 0 8px 26px rgba(226, 196, 124, 0.11);
+}
+
+.royal-page--history [data-royal-timeline] {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.royal-page--history [data-royal-timeline]::before {
+  position: absolute;
+  top: 0.9rem;
+  bottom: 0.9rem;
+  left: 0.3rem;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(226, 196, 124, 0.48) 12%, rgba(168, 149, 213, 0.36) 88%, transparent);
+  content: '';
+}
+
+.royal-page--history [data-royal-timeline] > [data-royal-tilt]::after {
+  position: absolute;
+  top: 1.25rem;
+  left: -1.12rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border: 1px solid rgba(226, 196, 124, 0.78);
+  border-radius: 50%;
+  background: #171523;
+  box-shadow: 0 0 12px rgba(226, 196, 124, 0.36);
+  content: '';
+}
+
+.royal-page--evidence .royal-evidence-layout,
+.royal-page--admin .royal-admin-layout {
+  max-width: 1440px !important;
+}
+
+@media (max-width: 640px) {
+  .royal-page {
+    border-radius: 16px;
+  }
+
+  .royal-page--evidence .royal-evidence-layout,
+  .royal-page--admin .royal-admin-layout {
+    padding: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .royal-page *,
+  .royal-page *::before,
+  .royal-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .royal-page [data-royal-tilt],
+  .royal-page [data-royal-tilt]:hover {
+    transform: none;
+  }
+}

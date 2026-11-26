@@ -1,0 +1,216 @@
+[
+  {
+    "file_name": "ai_generated_xmp.jpg",
+    "file_path": "C:\\Users\\patha\\OneDrive\\Documents\\project\\vexalens-\u2014-digital-media-forensics-lab\\ai-image-attribution\\test_images\\ai_generated_xmp.jpg",
+    "file_size_bytes": 2242,
+    "verdict": "Confirmed",
+    "tools": [
+      "Adobe Firefly"
+    ],
+    "evidence_list": [
+      {
+        "check": "Check A: Metadata (IPTC / XMP DigitalSourceType)",
+        "field": "IPTC DigitalSourceType",
+        "value": "trainedAlgorithmicMedia",
+        "tool": "Adobe Firefly",
+        "level": "Confirmed"
+      },
+      {
+        "check": "Check A: Metadata (XMP)",
+        "field": "XMP [xmp:CreatorTool]",
+        "value": "Matched 'firefly' in: Adobe Firefly",
+        "tool": "Adobe Firefly",
+        "level": "Confirmed"
+      },
+      {
+        "check": "Check A: Metadata (Raw bytes)",
+        "field": "Binary offset 499 (0x1F3)",
+        "value": "Keyword 'firefly' in context: ...atorTool>Adobe Firefly</xmp:CreatorTo...",
+        "tool": "Adobe Firefly",
+        "level": "Likely"
+      }
+    ],
+    "checks_skipped": [],
+    "check_details": {
+      "check_a_metadata": {
+        "found": true,
+        "tools": [
+          "Adobe Firefly"
+        ],
+        "evidence": [
+          {
+            "check": "Check A: Metadata (IPTC / XMP DigitalSourceType)",
+            "field": "IPTC DigitalSourceType",
+            "value": "trainedAlgorithmicMedia",
+            "tool": "Adobe Firefly",
+            "level": "Confirmed"
+          },
+          {
+            "check": "Check A: Metadata (XMP)",
+            "field": "XMP [xmp:CreatorTool]",
+            "value": "Matched 'firefly' in: Adobe Firefly",
+            "tool": "Adobe Firefly",
+            "level": "Confirmed"
+          },
+          {
+            "check": "Check A: Metadata (Raw bytes)",
+            "field": "Binary offset 499 (0x1F3)",
+            "value": "Keyword 'firefly' in context: ...atorTool>Adobe Firefly</xmp:CreatorTo...",
+            "tool": "Adobe Firefly",
+            "level": "Likely"
+          }
+        ]
+      },
+      "check_b_c2pa": {
+        "manifest_found": false,
+        "signer": null,
+        "claim_generator": null,
+        "actions": [],
+        "evidence": [],
+        "skipped": false,
+        "skip_reason": null
+      },
+      "check_c_invisible_watermark": {
+        "found": false,
+        "decoded_payload": null,
+        "evidence": [],
+        "synthid_note": "Google SynthID cannot be checked offline because only Google's own detector can read it. Never claim Gemini was used from the pixels alone.",
+        "skipped": false,
+        "skip_reason": null
+      },
+      "check_d_filename": {
+        "found": false,
+        "tools": [],
+        "evidence": []
+      }
+    }
+  },
+  {
+    "file_name": "clean_phone_photo.jpg",
+    "file_path": "C:\\Users\\patha\\OneDrive\\Documents\\project\\vexalens-\u2014-digital-media-forensics-lab\\ai-image-attribution\\test_images\\clean_phone_photo.jpg",
+    "file_size_bytes": 2155,
+    "verdict": "Not detected",
+    "tools": [],
+    "evidence_list": [],
+    "checks_skipped": [],
+    "check_details": {
+      "check_a_metadata": {
+        "found": false,
+        "tools": [],
+        "evidence": []
+      },
+      "check_b_c2pa": {
+        "manifest_found": false,
+        "signer": null,
+        "claim_generator": null,
+        "actions": [],
+        "evidence": [],
+        "skipped": false,
+        "skip_reason": null
+      },
+      "check_c_invisible_watermark": {
+        "found": false,
+        "decoded_payload": null,
+        "evidence": [],
+        "synthid_note": "Google SynthID cannot be checked offline because only Google's own detector can read it. Never claim Gemini was used from the pixels alone.",
+        "skipped": false,
+        "skip_reason": null
+      },
+      "check_d_filename": {
+        "found": false,
+        "tools": [],
+        "evidence": []
+      }
+    },
+    "disclaimer": "No AI trace found. Metadata may have been removed by a screenshot, re-save, or social media upload, so this does not prove the image is real."
+  },
+  {
+    "file_name": "fake_stable_diffusion.png",
+    "file_path": "C:\\Users\\patha\\OneDrive\\Documents\\project\\vexalens-\u2014-digital-media-forensics-lab\\ai-image-attribution\\test_images\\fake_stable_diffusion.png",
+    "file_size_bytes": 834,
+    "verdict": "Confirmed",
+    "tools": [
+      "Stable Diffusion (ComfyUI / Automatic1111)"
+    ],
+    "evidence_list": [
+      {
+        "check": "Check A: Metadata (PNG chunk)",
+        "field": "PNG text chunk [parameters]",
+        "value": "Steps: 20, Sampler: Euler, model: stable diffusion",
+        "tool": "Stable Diffusion (ComfyUI / Automatic1111)",
+        "level": "Confirmed"
+      },
+      {
+        "check": "Check A: Metadata (Raw bytes)",
+        "field": "Binary offset 86 (0x56)",
+        "value": "Keyword 'stable diffusion' in context: ... Euler, model: stable diffusion|G......IDATx.....",
+        "tool": "Stable Diffusion (ComfyUI / Automatic1111)",
+        "level": "Likely"
+      },
+      {
+        "check": "Check D: Filename hints",
+        "field": "filename",
+        "value": "Matched pattern 'stable[-_ ]?diffusion' in filename 'fake_stable_diffusion.png'",
+        "tool": "Stable Diffusion (ComfyUI / Automatic1111)",
+        "level": "Weak hint"
+      }
+    ],
+    "checks_skipped": [],
+    "check_details": {
+      "check_a_metadata": {
+        "found": true,
+        "tools": [
+          "Stable Diffusion (ComfyUI / Automatic1111)"
+        ],
+        "evidence": [
+          {
+            "check": "Check A: Metadata (PNG chunk)",
+            "field": "PNG text chunk [parameters]",
+            "value": "Steps: 20, Sampler: Euler, model: stable diffusion",
+            "tool": "Stable Diffusion (ComfyUI / Automatic1111)",
+            "level": "Confirmed"
+          },
+          {
+            "check": "Check A: Metadata (Raw bytes)",
+            "field": "Binary offset 86 (0x56)",
+            "value": "Keyword 'stable diffusion' in context: ... Euler, model: stable diffusion|G......IDATx.....",
+            "tool": "Stable Diffusion (ComfyUI / Automatic1111)",
+            "level": "Likely"
+          }
+        ]
+      },
+      "check_b_c2pa": {
+        "manifest_found": false,
+        "signer": null,
+        "claim_generator": null,
+        "actions": [],
+        "evidence": [],
+        "skipped": false,
+        "skip_reason": null
+      },
+      "check_c_invisible_watermark": {
+        "found": false,
+        "decoded_payload": null,
+        "evidence": [],
+        "synthid_note": "Google SynthID cannot be checked offline because only Google's own detector can read it. Never claim Gemini was used from the pixels alone.",
+        "skipped": false,
+        "skip_reason": null
+      },
+      "check_d_filename": {
+        "found": true,
+        "tools": [
+          "Stable Diffusion (ComfyUI / Automatic1111)"
+        ],
+        "evidence": [
+          {
+            "check": "Check D: Filename hints",
+            "field": "filename",
+            "value": "Matched pattern 'stable[-_ ]?diffusion' in filename 'fake_stable_diffusion.png'",
+            "tool": "Stable Diffusion (ComfyUI / Automatic1111)",
+            "level": "Weak hint"
+          }
+        ]
+      }
+    }
+  }
+]

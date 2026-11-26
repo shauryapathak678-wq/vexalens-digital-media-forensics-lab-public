@@ -1,0 +1,19 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "jsonlink-api-key",
+      "description": "JSONLink API key",
+      "password": true
+    }
+  ],
+  "servers": {
+    "jsonlink": {
+      "command": "npx",
+      "args": ["-y", "jsonlink-mcp"],
+      "env": {
+        "JSONLINK_API_KEY": "${input:jsonlink-api-key}"
+      }
+    }
+  }
+}

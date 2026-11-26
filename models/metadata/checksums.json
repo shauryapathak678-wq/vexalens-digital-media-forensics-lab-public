@@ -1,0 +1,31 @@
+{
+  "public/models/lipsync/face_landmarker.task": {
+    "sizeBytes": 3758596,
+    "sha256": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff",
+    "checksumSource": "Computed locally and pinned in the installer; publisher checksum not found."
+  },
+  "deepfakebench-v1": {
+    "sha256": null,
+    "checksumSource": "GitHub release API returned no digest for the v1.0.1 assets."
+  },
+  "genconvit": {
+    "genconvit_ed_inference.pth": {
+      "sizeBytes": 238174949,
+      "sha256": "86f0c2e875016435def7d031b357bda5dc0061367290d73de121186df3f03f8c",
+      "checksumSource": "Hugging Face LFS SHA-256 at revision 32d6e9e3c931a37971cc756da706cf1eef643372."
+    },
+    "genconvit_vae_inference.pth": {
+      "sizeBytes": 2782175601,
+      "sha256": "53c627c82d1439fc80e18ac462c1ed6969a3babe5376124a5c38d1c0c88c9042",
+      "checksumSource": "Hugging Face LFS SHA-256 at revision 32d6e9e3c931a37971cc756da706cf1eef643372."
+    }
+  },
+  "lipforensics": {
+    "sha256": null,
+    "checksumSource": "No publisher SHA-256 was verified."
+  },
+  "self-blended-images": {
+    "sha256": null,
+    "checksumSource": "No publisher SHA-256 was verified."
+  }
+}

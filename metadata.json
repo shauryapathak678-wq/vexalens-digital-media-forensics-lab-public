@@ -1,0 +1,6 @@
+{
+  "name": "VexaLens — Digital Media Forensics Lab",
+  "description": "Advanced digital forensics workbench for image, video, and audio authentication, deepfake detection, metadata auditing, error level analysis, and forensic chain-of-custody reporting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
