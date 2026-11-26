@@ -44,6 +44,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = parseInt(process.env.PORT || '3000', 10);
+const PYTHON_API_BASE_URL = (process.env.VEXALENS_PYTHON_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
+const pythonApiUrl = (endpoint: string) => `${PYTHON_API_BASE_URL}${endpoint}`;
 const AIORNOT_MAX_AUDIO_BYTES = 50 * 1024 * 1024;
 const CCTV_MAX_VIDEO_BYTES = 128 * 1024 * 1024;
 const CCTV_ANALYSIS_TIMEOUT_MS = 14_000;
@@ -77,7 +79,7 @@ app.use(express.json({ limit: '60mb' }));
 app.use(express.urlencoded({ extended: true, limit: '60mb' }));
 registerImageTraceProxy(app);
 
-async function proxyLocalModelRequest(
+async function proxyPythonServiceRequest(
   res: Response,
   serviceName: 'SyncNet' | 'GenConViT',
   endpoint: string,
@@ -85,7 +87,7 @@ async function proxyLocalModelRequest(
   timeoutMs = SYNCNET_HEALTH_TIMEOUT_MS,
 ): Promise<Response> {
   try {
-    const backendResponse = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+    const backendResponse = await fetch(pythonApiUrl(endpoint), {
       ...requestInit,
       signal: AbortSignal.timeout(timeoutMs),
     });
@@ -97,18 +99,18 @@ async function proxyLocalModelRequest(
     const timedOut = error instanceof Error && error.name === 'TimeoutError';
     return res.status(timedOut ? 504 : 503).json({
       error: timedOut
-        ? `The local ${serviceName} service timed out.`
-        : `The local ${serviceName} service is unavailable. Start it with npm run dev.`,
+        ? `The ${serviceName} analysis service timed out.`
+        : `The ${serviceName} analysis service is unavailable. Check VEXALENS_PYTHON_API_URL.`,
     });
   }
 }
 
 app.get('/api/lipsync/syncnet/health', (_req: Request, res: Response) =>
-  proxyLocalModelRequest(res, 'SyncNet', '/api/syncnet/health'),
+  proxyPythonServiceRequest(res, 'SyncNet', '/api/syncnet/health'),
 );
 
 app.get('/api/lipsync/genconvit/health', (_req: Request, res: Response) =>
-  proxyLocalModelRequest(res, 'GenConViT', '/api/genconvit/health'),
+  proxyPythonServiceRequest(res, 'GenConViT', '/api/genconvit/health'),
 );
 
 app.post(
@@ -139,7 +141,7 @@ app.post(
       return res.status(415).json({ error: 'Choose a supported video file.' });
     }
 
-    return proxyLocalModelRequest(
+    return proxyPythonServiceRequest(
       res,
       'SyncNet',
       '/api/syncnet/analyze',
@@ -194,7 +196,7 @@ app.post(
       });
     }
 
-    return proxyLocalModelRequest(
+    return proxyPythonServiceRequest(
       res,
       'GenConViT',
       '/api/genconvit/analyze',
@@ -242,7 +244,7 @@ app.post(
     }
 
     try {
-      const backendResponse = await fetch('http://127.0.0.1:8000/api/cctv/analyze', {
+      const backendResponse = await fetch(pythonApiUrl('/api/cctv/analyze'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/octet-stream',
@@ -261,7 +263,7 @@ app.post(
       return res.status(timedOut ? 504 : 503).json({
         error: timedOut
           ? 'CCTV analysis exceeded the 15-second limit. Try a shorter video.'
-          : 'The local CCTV analysis service is unavailable.',
+          : 'The CCTV analysis service is unavailable. Check VEXALENS_PYTHON_API_URL.',
       });
     }
   },
@@ -647,7 +649,7 @@ app.post('/api/models/test', (req: Request, res: Response) => {
 // ELA Forensic Service Endpoints (FastAPI + Python Pillow Bridge)
 app.get('/api/ela/health', async (_req: Request, res: Response) => {
   try {
-    const pyRes = await fetch('http://127.0.0.1:8000/api/ela/health');
+    const pyRes = await fetch(pythonApiUrl('/api/ela/health'));
     if (pyRes.ok) {
       const data = await pyRes.json();
       return res.json(data);
@@ -679,7 +681,7 @@ app.post('/api/ela/analyze', async (req: Request, res: Response) => {
 
   // 1. Try FastAPI microservice first
   try {
-    const fastApiRes = await fetch('http://127.0.0.1:8000/api/ela/analyze', {
+    const fastApiRes = await fetch(pythonApiUrl('/api/ela/analyze'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4603,7 +4605,7 @@ app.post(
     try {
       const form = new FormData();
       form.append('file', new Blob([new Uint8Array(req.body)], { type: contentType }), 'evidence-image');
-      const response = await fetch('http://127.0.0.1:8000/api/deepfake/contrastive', {
+      const response = await fetch(pythonApiUrl('/api/deepfake/contrastive'), {
         method: 'POST',
         body: form,
         signal: AbortSignal.timeout(600_000),
@@ -4613,7 +4615,7 @@ app.post(
       try {
         payload = await response.json();
       } catch {
-        return res.status(502).json({ error: 'The local deepfake service returned an unreadable response.' });
+        return res.status(502).json({ error: 'The Python deepfake service returned an unreadable response.' });
       }
 
       if (!response.ok) {
@@ -4622,20 +4624,20 @@ app.post(
           : null;
         if (response.status === 404) {
           return res.status(503).json({
-            error: 'The local deepfake API is not loaded. Restart the VexaLens backend and try again.',
+            error: 'The Python deepfake API is unavailable. Check VEXALENS_PYTHON_API_URL.',
           });
         }
         return res.status(response.status).json({
-          error: typeof detail === 'string' ? detail : `The local deepfake service failed (HTTP ${response.status}).`,
+          error: typeof detail === 'string' ? detail : `The Python deepfake service failed (HTTP ${response.status}).`,
         });
       }
       return res.json(payload);
     } catch (error) {
       const timedOut = error instanceof Error && error.name === 'TimeoutError';
-      console.error('[contrastive-deepfake] Local model request failed:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('[contrastive-deepfake] Python API request failed:', error instanceof Error ? error.message : 'Unknown error');
       return res.status(timedOut ? 504 : 503).json({
         error: timedOut
-          ? 'Local deepfake analysis timed out. The model may still be downloading; try again.'
+          ? 'Deepfake analysis timed out. The model service may be starting; try again.'
           : 'The local Python backend is unavailable. Start it and try again.',
       });
     }
@@ -4819,7 +4821,7 @@ app.post(
       const contentType = typeof req.headers['content-type'] === 'string'
         ? req.headers['content-type']
         : 'image/jpeg';
-      const localResponse = await fetch('http://127.0.0.1:8000/api/age-estimation/analyze', {
+      const localResponse = await fetch(pythonApiUrl('/api/age-estimation/analyze'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -4845,7 +4847,7 @@ app.post(
       const message = error instanceof Error ? error.message : String(error);
       return res.status(503).json({
         status: 'error',
-        message: `Local age-estimation engine is unavailable. Run npm run dev from the project root to start the local backend. ${message}`,
+        message: `Age-estimation service is unavailable. Check VEXALENS_PYTHON_API_URL. ${message}`,
       });
     }
   },

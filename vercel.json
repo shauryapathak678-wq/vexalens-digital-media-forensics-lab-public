@@ -1,0 +1,18 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/api/face-match/:path*",
+      "destination": "https://vexalens-backend.onrender.com/api/face-match/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://vexalens-node-api.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

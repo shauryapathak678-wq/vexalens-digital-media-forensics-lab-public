@@ -12,8 +12,6 @@ import { PhotoToVideoMatchResult, CandidateFaceMatch, FaceMatchConclusion } from
  * Visual similarity is an investigative lead, NOT legal identity proof.
  */
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
-
 export interface DetectedFaceRegion {
   x: number;
   y: number;
@@ -39,7 +37,7 @@ export async function detectFaceInImage(
 ): Promise<DetectedFaceRegion | null> {
   const base64 = await imageSourceToBase64(source);
   try {
-    const resp = await fetch(BACKEND_URL + '/api/face-match/detect', {
+    const resp = await fetch('/api/face-match/detect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image_base64: base64 }),
@@ -128,7 +126,7 @@ export async function matchPhotoAgainstVideoFrames(
   // Send all frames to Python backend for genuine biometric comparison
   let backendResult: any = null;
   try {
-    const resp = await fetch(BACKEND_URL + '/api/face-match/compare', {
+    const resp = await fetch('/api/face-match/compare', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -153,8 +151,7 @@ export async function matchPhotoAgainstVideoFrames(
       thresholdApplied: threshold,
       conclusion: 'service_unavailable' as FaceMatchConclusion,
       explanation:
-        'Python facial biometric backend is offline. Start it with: ' +
-        'python -m uvicorn backend.main:app --port 8000 --host 127.0.0.1',
+        'Python facial biometric service is unavailable. Check the backend service health.',
       hindiExplanation:
         'Python facial backend offline hai. FastAPI server shuru karein.',
       consentNoticeAcknowledged: true,
