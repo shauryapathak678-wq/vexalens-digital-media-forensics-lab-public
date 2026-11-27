@@ -422,6 +422,32 @@ def test_search_cache_hits_for_one_hour_and_force_refreshes(
     assert fresh["cache_hit"] is False
 
 
+def test_search_cache_does_not_store_partial_failures() -> None:
+    engines = ["google_vision", "yandex", "tineye"]
+    statuses = {"google_vision": "failed", "yandex": "no_matches", "tineye": "not_configured"}
+
+    image_trace._cache_search("a" * 16, engines, statuses, [])
+
+    assert image_trace._get_cached_search("a" * 16, engines) is None
+
+
+def test_search_cache_discards_older_partial_failures() -> None:
+    phash = "a" * 16
+    engines = ["google_vision", "yandex"]
+    key = image_trace._search_cache_key(phash, engines)
+    image_trace._search_cache[key] = (
+        image_trace.time.monotonic() + image_trace.SEARCH_CACHE_TTL_SECONDS,
+        {
+            "engine_status": {"google_vision": "failed", "yandex": "no_matches"},
+            "engine_details": {},
+            "results": [],
+        },
+    )
+
+    assert image_trace._get_cached_search(phash, engines) is None
+    assert key not in image_trace._search_cache
+
+
 def test_search_cache_expires_at_one_hour(monkeypatch: pytest.MonkeyPatch) -> None:
     now = 100.0
     monkeypatch.setattr(image_trace.time, "monotonic", lambda: now)
@@ -545,8 +571,11 @@ def test_endpoint_returns_hashes_when_all_search_engines_fail(
     payload = image_bytes(image)
     database = tmp_path / "endpoint.sqlite3"
     monkeypatch.setenv("VEXALENS_IMAGE_TRACE_DB", str(database))
+    search_calls = 0
 
     async def offline_search(_paths: list[Path], engines: list[str], _deep_search: bool):
+        nonlocal search_calls
+        search_calls += 1
         return (
             {engine: "failed" for engine in engines},
             {
@@ -577,6 +606,9 @@ def test_endpoint_returns_hashes_when_all_search_engines_fail(
     assert response.status_code == 200
     result = response.json()
     repeated_result = repeat.json()
+    assert search_calls == 2
+    assert result["cache_hit"] is False
+    assert repeated_result["cache_hit"] is False
     assert result["sha256"] == hashlib.sha256(payload).hexdigest()
     assert len(result["phash"]) == 16
     assert repeated_result["sha256"] == result["sha256"]

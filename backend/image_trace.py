@@ -51,6 +51,7 @@ TRACE_VERIFY_MAX_DOWNLOAD_BYTES = 3 * 1024 * 1024
 TRACE_VERIFY_CONCURRENCY = 8
 TRACE_VERIFY_MAX_RESULTS = 30
 SEARCH_CACHE_TTL_SECONDS = 60 * 60
+CACHEABLE_ENGINE_STATUSES = {"matches_found", "no_matches"}
 MAX_ENGINE_RESULTS = 50
 MAX_KNOWN_LINKS = 20
 MAX_IMAGES_PER_KNOWN_LINK = 50
@@ -1107,6 +1108,13 @@ def _search_cache_key(
     return phash, tuple(sorted(set(engines))), deep_search
 
 
+def _is_cacheable_search(engine_status: dict[str, str], engines: list[str]) -> bool:
+    return bool(engines) and all(
+        engine_status.get(engine) in CACHEABLE_ENGINE_STATUSES
+        for engine in engines
+    )
+
+
 def _get_cached_search(
     phash: str,
     engines: list[str],
@@ -1119,6 +1127,9 @@ def _get_cached_search(
         for cache_key in expired:
             _search_cache.pop(cache_key, None)
         cached = _search_cache.get(key)
+        if cached and not _is_cacheable_search(cached[1].get("engine_status", {}), engines):
+            _search_cache.pop(key, None)
+            return None
         return copy.deepcopy(cached[1]) if cached else None
 
 
@@ -1130,6 +1141,8 @@ def _cache_search(
     engine_details: dict[str, Any] | None = None,
     deep_search: bool = False,
 ) -> None:
+    if not _is_cacheable_search(engine_status, engines):
+        return
     key = _search_cache_key(phash, engines, deep_search)
     cached = {
         "engine_status": dict(engine_status),
@@ -1185,6 +1198,11 @@ def _build_trace_record(
     ]
     if cached:
         notes.append("Search results and local verification were returned from the one-hour perceptual-hash cache.")
+    elif any(
+        response_status.get(engine) not in CACHEABLE_ENGINE_STATUSES
+        for engine in selected_engines
+    ):
+        notes.append("Incomplete searches are not cached. Configure missing providers or retry failed providers.")
     if social_only:
         notes.append("Social media only was selected; non-social search results were excluded from this response.")
     notes.extend(coverage_notes)

@@ -289,7 +289,7 @@
       table.append(el('tr', null, el('th', { text:k }), td));
     });
   }
-  const status = (sel, msg, cls) => { const s = $(sel); s.textContent = msg; s.style.color = cls === 'bad' ? 'var(--bad)' : cls === 'good' ? 'var(--good)' : 'var(--muted)'; };
+  const status = (sel, msg, cls) => { const s = $(sel); s.textContent = msg; s.style.color = cls === 'bad' ? 'var(--bad)' : cls === 'good' ? 'var(--good)' : cls === 'warn' ? 'var(--warn)' : 'var(--muted)'; };
 
   /* ---------- upload ---------- */
   const drop = $('#it-drop'), input = $('#it-file');
@@ -534,9 +534,13 @@
           state.engineDetails = data.engine_details || {};
           const searchedStatuses = TRACE_ENGINES.map(([engine]) => state.engineStatuses[engine]);
           const hasSuccessfulNoMatches = searchedStatuses.includes('no_matches');
-          const allFailed = searchedStatuses.length > 0 && searchedStatuses.every(value => value === 'failed' || value === 'not_configured');
+          const failedCount = searchedStatuses.filter(value => value === 'failed' || value === 'blocked').length;
+          const unconfiguredCount = searchedStatuses.filter(value => value === 'not_configured').length;
+          const successfulCount = searchedStatuses.filter(value => value === 'matches_found' || value === 'no_matches').length;
+          const hasProviderIssues = failedCount + unconfiguredCount > 0;
+          const allFailed = searchedStatuses.length > 0 && successfulCount === 0;
           state.deepSearchAvailable = !deepSearch && hasSuccessfulNoMatches;
-          state.retryAvailable = allFailed;
+          state.retryAvailable = failedCount > 0;
           renderEngineStatuses();
           updatePlatformFilter();
           renderResults();
@@ -556,14 +560,17 @@
           console.info('[Image Trace timing] ' + JSON.stringify(timing));
           const firstLabel = firstResultMs === null ? 'No result arrived' : 'First result ' + (firstResultMs / 1000).toFixed(2) + ' s';
           const summary = (data.results || []).length
-            ? (data.results || []).length + ' result(s).'
+            ? (data.results || []).length + ' result(s).' + (hasProviderIssues ? ' Search coverage is incomplete: ' + failedCount + ' failed or blocked, ' + unconfiguredCount + ' not configured.' : '')
             : allFailed
               ? 'Search could not be completed. Check provider configuration/connectivity and retry.'
+              : hasProviderIssues
+                ? 'No results found. ' + successfulCount + ' engine(s) completed; ' + failedCount + ' failed or were blocked, ' + unconfiguredCount + ' not configured. Search coverage is incomplete.'
               : hasSuccessfulNoMatches
                 ? 'No matches found for engines that completed successfully.'
                 : 'No results were returned; no engine reported a successful no-match search.';
-          status('#it-runstatus', summary + ' ' + firstLabel + '; total ' + (totalMs / 1000).toFixed(2) + ' s' + (data.cache_hit ? ' (cached).' : '.'), allFailed ? 'bad' : 'good');
-          status('#it-status', allFailed ? 'Image analysis complete, but automated search could not be completed.' : 'Image analysis and automated search complete.', allFailed ? 'bad' : 'good');
+          const completionStatus = allFailed ? 'bad' : hasProviderIssues ? 'warn' : 'good';
+          status('#it-runstatus', summary + ' ' + firstLabel + '; total ' + (totalMs / 1000).toFixed(2) + ' s' + (data.cache_hit ? ' (cached).' : '.'), completionStatus);
+          status('#it-status', allFailed ? 'Image analysis complete, but automated search could not be completed.' : hasProviderIssues ? 'Image analysis complete; some search engines failed or are not configured.' : 'Image analysis and automated search complete.', completionStatus);
         }
       });
     } catch (e) {
